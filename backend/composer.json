@@ -1,0 +1,8 @@
+{
+  "name": "vmc/backend",
+  "description": "VMC Informática Backend API",
+  "type": "project",
+  "require": {
+    "php": ">=7.4"
+  }
+}

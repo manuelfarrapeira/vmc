@@ -1,0 +1,10 @@
+# Denegar acceso directo a la carpeta utils
+<IfModule mod_authz_core.c>
+    # Apache 2.4
+    Require all denied
+</IfModule>
+<parameter name="!mod_authz_core.c>
+    # Apache 2.2
+    Order deny,allow
+    Deny from all
+</IfModule>

@@ -1,0 +1,34 @@
+# PHP
+vendor/
+.env
+composer.lock
+
+# Logs
+*.log
+*.tmp
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+
+# PHP specific
+.phpunit.result.cache
+
+# Database
+*.sqlite
+*.db
+
+# Config files with sensitive data
+config/local.php
