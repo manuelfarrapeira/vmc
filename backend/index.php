@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VMC - Sistema de Gestión</title>
+    <title>VMC Informática</title>
     <meta name="description" content="Sistema de Gestión de Clientes e Incidencias VMC">
     <meta name="author" content="VMC Informática">
 
@@ -17,7 +17,9 @@
     <link href="assets/css/style.css" rel="stylesheet">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktYnVpbGRpbmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PD4=">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="apple-touch-icon" href="images/favicon-180.svg">
+    <link rel="shortcut icon" href="images/favicon.svg">
 </head>
 <body>
     <div id="app">
