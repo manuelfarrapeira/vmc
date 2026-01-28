@@ -861,6 +861,7 @@ class VMCApp {
 
         this.renderIncidenciasChart(stats);
         this.renderDistributionChart(stats);
+        this.renderPaymentChart(stats);
     }
 
     /**
@@ -871,12 +872,16 @@ class VMCApp {
             console.error('Chart.js no pudo cargarse después de múltiples intentos');
             const incidenciasChart = document.getElementById('incidenciasChart');
             const distributionChart = document.getElementById('distributionChart');
+            const paymentChart = document.getElementById('paymentChart');
 
             if (incidenciasChart) {
                 incidenciasChart.innerHTML = '<div class="text-center p-4"><i class="bi bi-exclamation-triangle text-warning"></i><br><small>Error cargando gráficos</small></div>';
             }
             if (distributionChart) {
                 distributionChart.innerHTML = '<div class="text-center p-4"><i class="bi bi-exclamation-triangle text-warning"></i><br><small>Error cargando gráficos</small></div>';
+            }
+            if (paymentChart) {
+                paymentChart.innerHTML = '<div class="text-center p-4"><i class="bi bi-exclamation-triangle text-warning"></i><br><small>Error cargando gráficos</small></div>';
             }
             return;
         }
@@ -887,6 +892,7 @@ class VMCApp {
                 this.chartsNeedRetry = false;
                 this.renderIncidenciasChart(this.lastDashboardStats);
                 this.renderDistributionChart(this.lastDashboardStats);
+                this.renderPaymentChart(this.lastDashboardStats);
             } else {
                 this.retryChartsLoad(attempt + 1);
             }
@@ -994,6 +1000,56 @@ class VMCApp {
         };
 
         this.charts.distribution = new Chart(ctx, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Render payment pie chart (cobradas vs sin cobrar)
+     */
+    renderPaymentChart(stats) {
+        const ctx = document.getElementById('paymentChart');
+        if (!ctx) return;
+
+        // Verificar que Chart.js esté disponible
+        if (typeof Chart === 'undefined') {
+            ctx.innerHTML = '<div class="text-center p-4"><i class="bi bi-exclamation-triangle text-warning"></i><br>Chart.js no disponible</div>';
+            return;
+        }
+
+        // Destroy existing chart
+        if (this.charts.payment) {
+            this.charts.payment.destroy();
+        }
+
+        const cobradas = stats.incidencias?.cobradas || 0;
+        const realizadas = stats.incidencias?.realizadas || 0;
+        const sinCobrar = realizadas - cobradas;
+
+        const data = {
+            labels: ['Cobradas', 'Sin Cobrar'],
+            datasets: [{
+                data: [
+                    cobradas,
+                    sinCobrar
+                ],
+                backgroundColor: ['#0d6efd', '#dc3545'],
+                borderColor: ['#0a58ca', '#b02a37'],
+                borderWidth: 2
+            }]
+        };
+
+        this.charts.payment = new Chart(ctx, {
             type: 'doughnut',
             data: data,
             options: {

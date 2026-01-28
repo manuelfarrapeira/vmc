@@ -186,7 +186,7 @@
 
                             <!-- Charts -->
                             <div class="row" id="charts-container">
-                                <div class="col-md-8 mb-4">
+                                <div class="col-md-6 mb-4">
                                     <div class="card">
                                         <div class="card-header">
                                             <h5 class="mb-0">
@@ -200,16 +200,30 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-4">
+                                <div class="col-md-3 mb-4">
                                     <div class="card">
                                         <div class="card-header">
                                             <h5 class="mb-0">
-                                                <i class="bi bi-pie-chart me-2"></i>Distribución
+                                                <i class="bi bi-pie-chart me-2"></i>Realizadas
                                             </h5>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container">
                                                 <canvas id="distributionChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">
+                                                <i class="bi bi-pie-chart-fill me-2"></i>Cobradas
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="chart-container">
+                                                <canvas id="paymentChart"></canvas>
                                             </div>
                                         </div>
                                     </div>
