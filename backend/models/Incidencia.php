@@ -12,6 +12,8 @@ class Incidencia {
     public $realizado;
     public $respuesta;
     public $cobrado;
+    public $documentacion;
+    public $qr;
 
     public function __construct($db) {
         $this->conn = $db;
@@ -97,12 +99,15 @@ class Incidencia {
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
                   SET idcliente=:idcliente, fecha=:fecha, incidencia=:incidencia, 
-                      realizado=:realizado, respuesta=:respuesta, cobrado=:cobrado";
+                      realizado=:realizado, respuesta=:respuesta, cobrado=:cobrado, 
+                      documentacion=:documentacion, qr=:qr";
 
         $stmt = $this->conn->prepare($query);
 
         $this->incidencia = htmlspecialchars(strip_tags($this->incidencia));
         $this->respuesta = htmlspecialchars(strip_tags($this->respuesta));
+        $this->documentacion = htmlspecialchars(strip_tags($this->documentacion));
+        $this->qr = htmlspecialchars(strip_tags($this->qr));
 
         $stmt->bindParam(":idcliente", $this->idcliente);
         $stmt->bindParam(":fecha", $this->fecha);
@@ -110,11 +115,20 @@ class Incidencia {
         $stmt->bindParam(":realizado", $this->realizado);
         $stmt->bindParam(":respuesta", $this->respuesta);
         $stmt->bindParam(":cobrado", $this->cobrado);
+        $stmt->bindParam(":documentacion", $this->documentacion);
+        $stmt->bindParam(":qr", $this->qr);
 
-        if($stmt->execute()) {
-            return true;
+        try {
+            if($stmt->execute()) {
+                return true;
+            }
+            return false;
+        } catch(PDOException $e) {
+            error_log("Error en Incidencia->create(): " . $e->getMessage());
+            error_log("Query: " . $query);
+            error_log("Params: idcliente={$this->idcliente}, fecha={$this->fecha}, realizado={$this->realizado}, cobrado={$this->cobrado}");
+            throw $e;
         }
-        return false;
     }
 
     public function readOne() {
@@ -132,6 +146,8 @@ class Incidencia {
             $this->realizado = $row['realizado'];
             $this->respuesta = $row['respuesta'];
             $this->cobrado = $row['cobrado'];
+            $this->documentacion = $row['documentacion'];
+            $this->qr = $row['qr'];
             return true;
         }
         return false;
@@ -140,13 +156,16 @@ class Incidencia {
     public function update() {
         $query = "UPDATE " . $this->table_name . " 
                   SET idcliente=:idcliente, fecha=:fecha, incidencia=:incidencia, 
-                      realizado=:realizado, respuesta=:respuesta, cobrado=:cobrado 
+                      realizado=:realizado, respuesta=:respuesta, cobrado=:cobrado, 
+                      documentacion=:documentacion, qr=:qr 
                   WHERE id=:id";
 
         $stmt = $this->conn->prepare($query);
 
         $this->incidencia = htmlspecialchars(strip_tags($this->incidencia));
         $this->respuesta = htmlspecialchars(strip_tags($this->respuesta));
+        $this->documentacion = htmlspecialchars(strip_tags($this->documentacion));
+        $this->qr = htmlspecialchars(strip_tags($this->qr));
 
         $stmt->bindParam(":idcliente", $this->idcliente);
         $stmt->bindParam(":fecha", $this->fecha);
@@ -154,6 +173,8 @@ class Incidencia {
         $stmt->bindParam(":realizado", $this->realizado);
         $stmt->bindParam(":respuesta", $this->respuesta);
         $stmt->bindParam(":cobrado", $this->cobrado);
+        $stmt->bindParam(":documentacion", $this->documentacion);
+        $stmt->bindParam(":qr", $this->qr);
         $stmt->bindParam(":id", $this->id);
 
         if($stmt->execute()) {

@@ -57,26 +57,38 @@ switch ($method) {
         break;
 
     case 'POST':
-        $data = json_decode(file_get_contents("php://input"));
+        try {
+            $data = json_decode(file_get_contents("php://input"));
 
-        if (!empty($data->idcliente) && !empty($data->incidencia)) {
-            $incidencia->idcliente = $data->idcliente;
-            $incidencia->fecha = $data->fecha ?? date('d/m/Y');
-            $incidencia->incidencia = $data->incidencia;
-            $incidencia->realizado = $data->realizado ?? 0;
-            $incidencia->respuesta = $data->respuesta ?? '';
-            $incidencia->cobrado = $data->cobrado ?? 0;
+            if (!empty($data->idcliente) && !empty($data->incidencia)) {
+                $incidencia->idcliente = $data->idcliente;
+                $incidencia->fecha = $data->fecha ?? date('d/m/Y');
+                $incidencia->incidencia = $data->incidencia;
+                $incidencia->realizado = $data->realizado ?? 0;
+                $incidencia->respuesta = $data->respuesta ?? '';
+                $incidencia->cobrado = $data->cobrado ?? 0;
+                $incidencia->documentacion = $data->documentacion ?? '';
+                $incidencia->qr = $data->qr ?? '';
 
-            if ($incidencia->create()) {
-                http_response_code(201);
-                echo json_encode(array("message" => "Incidencia creada exitosamente"));
+                if ($incidencia->create()) {
+                    http_response_code(201);
+                    echo json_encode(array("message" => "Incidencia creada exitosamente"));
+                } else {
+                    http_response_code(503);
+                    echo json_encode(array("message" => "No se pudo crear la incidencia"));
+                }
             } else {
-                http_response_code(503);
-                echo json_encode(array("message" => "No se pudo crear la incidencia"));
+                http_response_code(400);
+                echo json_encode(array("message" => "Datos incompletos"));
             }
-        } else {
-            http_response_code(400);
-            echo json_encode(array("message" => "Datos incompletos"));
+        } catch (Exception $e) {
+            error_log("Error en incidencias/index.php POST: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(array(
+                "error" => "Error al crear incidencia",
+                "message" => $e->getMessage(),
+                "trace" => $e->getTraceAsString()
+            ));
         }
         break;
 
@@ -91,6 +103,8 @@ switch ($method) {
             $incidencia->realizado = $data->realizado ?? 0;
             $incidencia->respuesta = $data->respuesta ?? '';
             $incidencia->cobrado = $data->cobrado ?? 0;
+            $incidencia->documentacion = $data->documentacion ?? '';
+            $incidencia->qr = $data->qr ?? '';
 
             if ($incidencia->update()) {
                 http_response_code(200);
