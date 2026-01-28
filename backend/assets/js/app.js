@@ -197,8 +197,8 @@ class VMCApp {
                                         <input type="text" class="form-control" id="cliente-razon" name="razon_social">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="cliente-codigo" class="form-label fw-semibold">Código</label>
-                                        <input type="text" class="form-control" id="cliente-codigo" name="codigo">
+                                        <label for="cliente-dni-cif" class="form-label fw-semibold">DNI/CIF</label>
+                                        <input type="text" class="form-control" id="cliente-dni-cif" name="dni">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="cliente-telefono" class="form-label fw-semibold">Teléfono</label>
@@ -534,11 +534,15 @@ class VMCApp {
                     result = JSON.parse(text);
                 } catch (jsonError) {
                     console.error('JSON Parse Error:', jsonError);
-                    console.error('Response text:', text);
-                    throw new Error(`Invalid JSON response: ${text.substring(0, 200)}`);
+                    console.error('Response text (first 500 chars):', text.substring(0, 500));
+                    console.error('Response text (full):', text);
+                    throw new Error(`Invalid JSON response from ${endpoint}: ${text.substring(0, 300)}...`);
                 }
             } else {
-                throw new Error(`Server error (not JSON): ${text}`);
+                console.error('Non-JSON response from', endpoint);
+                console.error('Content-Type:', contentType);
+                console.error('Response (first 500 chars):', text.substring(0, 500));
+                throw new Error(`Server error (not JSON) from ${endpoint}: ${text.substring(0, 200)}`);
             }
 
             if (!response.ok) {
@@ -1059,7 +1063,7 @@ class VMCApp {
                     </td>
                     <td>${this.escapeHtml(cliente.razon_social || '')}</td>
                     <td>
-                        <code class="text-muted">${this.escapeHtml(cliente.codigo || '')}</code>
+                        <code class="text-muted">${this.escapeHtml(cliente.dni || '')}</code>
                     </td>
                     <td>
                         ${cliente.tlf ? `<a href="tel:${cliente.tlf}" class="text-decoration-none">${cliente.tlf}</a>` : ''}
@@ -1255,7 +1259,7 @@ class VMCApp {
             document.getElementById('cliente-id').value = cliente.id;
             document.getElementById('cliente-nombre').value = cliente.nombre || '';
             document.getElementById('cliente-razon').value = cliente.razon_social || '';
-            document.getElementById('cliente-codigo').value = cliente.codigo || '';
+            document.getElementById('cliente-dni-cif').value = cliente.dni || '';
             document.getElementById('cliente-telefono').value = cliente.tlf || '';
             document.getElementById('cliente-observaciones').value = cliente.observaciones || '';
         } else {

@@ -24,36 +24,46 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
-        $search = isset($_GET['search']) ? $_GET['search'] : '';
-        $orderBy = isset($_GET['orderBy']) ? $_GET['orderBy'] : 'nombre';
-        $orderDir = isset($_GET['orderDir']) ? $_GET['orderDir'] : 'ASC';
-        $estadoIncidencias = isset($_GET['estadoIncidencias']) ? $_GET['estadoIncidencias'] : '';
+        try {
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+            $search = isset($_GET['search']) ? $_GET['search'] : '';
+            $orderBy = isset($_GET['orderBy']) ? $_GET['orderBy'] : 'nombre';
+            $orderDir = isset($_GET['orderDir']) ? $_GET['orderDir'] : 'ASC';
+            $estadoIncidencias = isset($_GET['estadoIncidencias']) ? $_GET['estadoIncidencias'] : '';
 
-        // Validar limit
-        $allowedLimits = [20, 30, 50];
-        if (!in_array($limit, $allowedLimits)) {
-            $limit = 20;
+            // Validar limit
+            $allowedLimits = [20, 30, 50];
+            if (!in_array($limit, $allowedLimits)) {
+                $limit = 20;
+            }
+
+            // Validar estadoIncidencias
+            $allowedEstados = ['', 'sin_cobrar', 'sin_realizar'];
+            if (!in_array($estadoIncidencias, $allowedEstados)) {
+                $estadoIncidencias = '';
+            }
+
+            $stmt = $cliente->read($page, $limit, $search, $orderBy, $orderDir, $estadoIncidencias);
+            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $total = $cliente->count($search, $estadoIncidencias);
+
+            echo json_encode(array(
+                "data" => $clientes,
+                "total" => $total,
+                "page" => $page,
+                "limit" => $limit,
+                "pages" => ceil($total / $limit)
+            ));
+        } catch (Exception $e) {
+            error_log("Error en clientes/index.php GET: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(array(
+                "error" => "Error al obtener clientes",
+                "message" => $e->getMessage(),
+                "trace" => $e->getTraceAsString()
+            ));
         }
-
-        // Validar estadoIncidencias
-        $allowedEstados = ['', 'sin_cobrar', 'sin_realizar'];
-        if (!in_array($estadoIncidencias, $allowedEstados)) {
-            $estadoIncidencias = '';
-        }
-
-        $stmt = $cliente->read($page, $limit, $search, $orderBy, $orderDir, $estadoIncidencias);
-        $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $total = $cliente->count($search, $estadoIncidencias);
-
-        echo json_encode(array(
-            "data" => $clientes,
-            "total" => $total,
-            "page" => $page,
-            "limit" => $limit,
-            "pages" => ceil($total / $limit)
-        ));
         break;
 
     case 'POST':
@@ -62,7 +72,7 @@ switch ($method) {
         if (!empty($data->nombre)) {
             $cliente->nombre = $data->nombre;
             $cliente->razon_social = $data->razon_social ?? '';
-            $cliente->codigo = $data->codigo ?? '';
+            $cliente->dni = $data->dni ?? '';
             $cliente->tlf = $data->tlf ?? null;
             $cliente->observaciones = $data->observaciones ?? '';
 
@@ -86,7 +96,7 @@ switch ($method) {
             $cliente->id = $data->id;
             $cliente->nombre = $data->nombre;
             $cliente->razon_social = $data->razon_social ?? '';
-            $cliente->codigo = $data->codigo ?? '';
+            $cliente->dni = $data->dni ?? '';
             $cliente->tlf = $data->tlf ?? null;
             $cliente->observaciones = $data->observaciones ?? '';
 

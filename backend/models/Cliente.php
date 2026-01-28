@@ -8,7 +8,7 @@ class Cliente {
     public $id;
     public $nombre;
     public $razon_social;
-    public $codigo;
+    public $dni;
     public $tlf;
     public $observaciones;
 
@@ -45,7 +45,7 @@ class Cliente {
             }
             $searchQuery .= $this->table_name . ".nombre LIKE :search1 OR " .
                            $this->table_name . ".razon_social LIKE :search2 OR " .
-                           $this->table_name . ".codigo LIKE :search3 OR " .
+                           $this->table_name . ".dni LIKE :search3 OR " .
                            $this->table_name . ".tlf LIKE :search4";
             $searchQuery .= ")"; // Cerrar el paréntesis del grupo de búsqueda
             $searchValue = '%' . $search . '%';
@@ -55,7 +55,7 @@ class Cliente {
             $params[':search4'] = $searchValue;
         }
 
-        $allowedOrderBy = ['nombre', 'razon_social', 'codigo'];
+        $allowedOrderBy = ['nombre', 'razon_social', 'dni'];
         $orderBy = in_array($orderBy, $allowedOrderBy) ? $orderBy : 'nombre';
         $orderDir = in_array(strtoupper($orderDir), ['ASC', 'DESC']) ? strtoupper($orderDir) : 'ASC';
 
@@ -74,7 +74,15 @@ class Cliente {
 
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
+
+        try {
+            $stmt->execute();
+        } catch(PDOException $e) {
+            error_log("Error en Cliente->read(): " . $e->getMessage());
+            error_log("Query: " . $query);
+            error_log("Params: " . print_r($params, true));
+            throw $e;
+        }
 
         return $stmt;
     }
@@ -109,7 +117,7 @@ class Cliente {
             }
             $searchQuery .= $this->table_name . ".nombre LIKE :search1 OR " .
                            $this->table_name . ".razon_social LIKE :search2 OR " .
-                           $this->table_name . ".codigo LIKE :search3 OR " .
+                           $this->table_name . ".dni LIKE :search3 OR " .
                            $this->table_name . ".tlf LIKE :search4";
             $searchQuery .= ")"; // Cerrar el paréntesis del grupo de búsqueda
             $searchValue = '%' . $search . '%';
@@ -128,26 +136,34 @@ class Cliente {
             $stmt->bindValue($key, $value);
         }
 
-        $stmt->execute();
+        try {
+            $stmt->execute();
+        } catch(PDOException $e) {
+            error_log("Error en Cliente->count(): " . $e->getMessage());
+            error_log("Query: " . $query);
+            error_log("Params: " . print_r($params, true));
+            throw $e;
+        }
+
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total'];
     }
 
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  SET nombre=:nombre, razon_social=:razon_social, codigo=:codigo, tlf=:tlf, observaciones=:observaciones";
+                  SET nombre=:nombre, razon_social=:razon_social, dni=:dni, tlf=:tlf, observaciones=:observaciones";
 
         $stmt = $this->conn->prepare($query);
 
         $this->nombre = htmlspecialchars(strip_tags($this->nombre));
         $this->razon_social = htmlspecialchars(strip_tags($this->razon_social));
-        $this->codigo = htmlspecialchars(strip_tags($this->codigo));
+        $this->dni = htmlspecialchars(strip_tags($this->dni));
         $this->tlf = htmlspecialchars(strip_tags($this->tlf));
         $this->observaciones = htmlspecialchars(strip_tags($this->observaciones));
 
         $stmt->bindParam(":nombre", $this->nombre);
         $stmt->bindParam(":razon_social", $this->razon_social);
-        $stmt->bindParam(":codigo", $this->codigo);
+        $stmt->bindParam(":dni", $this->dni);
         $stmt->bindParam(":tlf", $this->tlf);
         $stmt->bindParam(":observaciones", $this->observaciones);
 
@@ -168,7 +184,7 @@ class Cliente {
         if($row) {
             $this->nombre = $row['nombre'];
             $this->razon_social = $row['razon_social'];
-            $this->codigo = $row['codigo'];
+            $this->dni = $row['dni'];
             $this->tlf = $row['tlf'];
             $this->observaciones = $row['observaciones'];
             return true;
@@ -178,21 +194,21 @@ class Cliente {
 
     public function update() {
         $query = "UPDATE " . $this->table_name . " 
-                  SET nombre=:nombre, razon_social=:razon_social, codigo=:codigo, tlf=:tlf, observaciones=:observaciones 
+                  SET nombre=:nombre, razon_social=:razon_social, dni=:dni, tlf=:tlf, observaciones=:observaciones 
                   WHERE id=:id";
 
         $stmt = $this->conn->prepare($query);
 
         $this->nombre = htmlspecialchars(strip_tags($this->nombre));
         $this->razon_social = htmlspecialchars(strip_tags($this->razon_social));
-        $this->codigo = htmlspecialchars(strip_tags($this->codigo));
+        $this->dni = htmlspecialchars(strip_tags($this->dni));
         $this->tlf = htmlspecialchars(strip_tags($this->tlf));
         $this->observaciones = htmlspecialchars(strip_tags($this->observaciones));
         $this->id = htmlspecialchars(strip_tags($this->id));
 
         $stmt->bindParam(":nombre", $this->nombre);
         $stmt->bindParam(":razon_social", $this->razon_social);
-        $stmt->bindParam(":codigo", $this->codigo);
+        $stmt->bindParam(":dni", $this->dni);
         $stmt->bindParam(":tlf", $this->tlf);
         $stmt->bindParam(":observaciones", $this->observaciones);
         $stmt->bindParam(":id", $this->id);

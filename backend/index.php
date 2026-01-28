@@ -234,7 +234,7 @@
                                     <div class="row g-3">
                                         <div class="col-md-4">
                                             <label class="form-label fw-semibold">Buscar clientes</label>
-                                            <input type="text" class="form-control" id="search-clientes" placeholder="Nombre, razón social, código o teléfono...">
+                                            <input type="text" class="form-control" id="search-clientes" placeholder="Nombre, razón social, DNI/CIF o teléfono...">
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label fw-semibold">Estado de incidencias</label>
@@ -277,9 +277,9 @@
                                                         <i class="bi bi-building me-1"></i>Razón Social
                                                         <i class="bi bi-chevron-expand sort-icon" id="sort-icon-razon_social"></i>
                                                     </th>
-                                                    <th class="fw-semibold sortable-header" data-sort="codigo" style="cursor: pointer; user-select: none;">
-                                                        Código
-                                                        <i class="bi bi-chevron-expand sort-icon" id="sort-icon-codigo"></i>
+                                                    <th class="fw-semibold sortable-header" data-sort="dni" style="cursor: pointer; user-select: none;">
+                                                        DNI/CIF
+                                                        <i class="bi bi-chevron-expand sort-icon" id="sort-icon-dni"></i>
                                                     </th>
                                                     <th class="fw-semibold">
                                                         <i class="bi bi-telephone me-1"></i>Teléfono
