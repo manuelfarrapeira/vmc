@@ -1182,8 +1182,14 @@ class VMCApp {
         container.innerHTML = html;
 
         // Show pagination info
+        // Remove previous info if exists
+        const previousInfo = container.nextElementSibling;
+        if (previousInfo && previousInfo.classList.contains('pagination-info')) {
+            previousInfo.remove();
+        }
+
         const info = `Mostrando ${((page - 1) * this.pagination.clientes.limit) + 1} a ${Math.min(page * this.pagination.clientes.limit, total)} de ${total} clientes`;
-        container.insertAdjacentHTML('afterend', `<div class="text-center text-muted mt-2">${info}</div>`);
+        container.insertAdjacentHTML('afterend', `<div class="text-center text-muted mt-2 pagination-info">${info}</div>`);
     }
 
     /**
