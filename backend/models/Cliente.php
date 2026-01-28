@@ -27,9 +27,6 @@ class Cliente {
             $fromClause = $this->table_name . " INNER JOIN incidencias ON " . $this->table_name . ".id = incidencias.idcliente";
 
             switch ($estadoIncidencias) {
-                case 'sin_finalizar':
-                    $searchQuery = "WHERE incidencias.finalizada = 0";
-                    break;
                 case 'sin_cobrar':
                     $searchQuery = "WHERE incidencias.cobrado = 0";
                     break;
@@ -94,9 +91,6 @@ class Cliente {
             $countClause = "COUNT(DISTINCT " . $this->table_name . ".id)";
 
             switch ($estadoIncidencias) {
-                case 'sin_finalizar':
-                    $searchQuery = "WHERE incidencias.finalizada = 0";
-                    break;
                 case 'sin_cobrar':
                     $searchQuery = "WHERE incidencias.cobrado = 0";
                     break;

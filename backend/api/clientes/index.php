@@ -38,7 +38,7 @@ switch ($method) {
         }
 
         // Validar estadoIncidencias
-        $allowedEstados = ['', 'sin_finalizar', 'sin_cobrar', 'sin_realizar'];
+        $allowedEstados = ['', 'sin_cobrar', 'sin_realizar'];
         if (!in_array($estadoIncidencias, $allowedEstados)) {
             $estadoIncidencias = '';
         }

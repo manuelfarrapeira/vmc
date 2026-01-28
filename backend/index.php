@@ -240,7 +240,6 @@
                                             <label class="form-label fw-semibold">Estado de incidencias</label>
                                             <select class="form-select" id="filter-estado-incidencias" onchange="handleEstadoIncidenciasChange(this.value)">
                                                 <option value="">Todos los clientes</option>
-                                                <option value="sin_finalizar">Con incidencias sin finalizar</option>
                                                 <option value="sin_cobrar">Con incidencias sin cobrar</option>
                                                 <option value="sin_realizar">Con incidencias sin realizar</option>
                                             </select>
@@ -365,14 +364,6 @@
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label fw-semibold">Finalizada</label>
-                                            <select class="form-select" id="filter-finalizada">
-                                                <option value="">Todos</option>
-                                                <option value="1">Sí</option>
-                                                <option value="0">No</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
                                             <label class="form-label fw-semibold">Por página</label>
                                             <select class="form-select" id="incidencias-page-size">
                                                 <option value="20">20</option>
@@ -404,13 +395,12 @@
                                                     <th class="fw-semibold" width="30%">Respuesta</th>
                                                     <th class="fw-semibold text-center" width="10%">Realizado</th>
                                                     <th class="fw-semibold text-center" width="10%">Cobrado</th>
-                                                    <th class="fw-semibold text-center" width="10%">Finalizada</th>
                                                     <th class="fw-semibold text-center" width="10%">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="incidencias-table">
                                                 <tr>
-                                                    <td colspan="7" class="text-center py-4">
+                                                    <td colspan="6" class="text-center py-4">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>

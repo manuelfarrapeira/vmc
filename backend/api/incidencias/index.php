@@ -36,9 +36,6 @@ switch ($method) {
         if (isset($_GET['cobrado']) && $_GET['cobrado'] !== '') {
             $filters['cobrado'] = (int)$_GET['cobrado'];
         }
-        if (isset($_GET['finalizada']) && $_GET['finalizada'] !== '') {
-            $filters['finalizada'] = (int)$_GET['finalizada'];
-        }
 
         // Validar limit
         $allowedLimits = [20, 30, 50];
@@ -69,7 +66,6 @@ switch ($method) {
             $incidencia->realizado = $data->realizado ?? 0;
             $incidencia->respuesta = $data->respuesta ?? '';
             $incidencia->cobrado = $data->cobrado ?? 0;
-            $incidencia->finalizada = $data->finalizada ?? 0;
 
             if ($incidencia->create()) {
                 http_response_code(201);
@@ -95,7 +91,6 @@ switch ($method) {
             $incidencia->realizado = $data->realizado ?? 0;
             $incidencia->respuesta = $data->respuesta ?? '';
             $incidencia->cobrado = $data->cobrado ?? 0;
-            $incidencia->finalizada = $data->finalizada ?? 0;
 
             if ($incidencia->update()) {
                 http_response_code(200);

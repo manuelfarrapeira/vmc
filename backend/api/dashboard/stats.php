@@ -34,9 +34,7 @@ echo json_encode(array(
     "incidencias" => array(
         "total" => (int)$statsIncidencias['total'],
         "realizadas" => (int)$statsIncidencias['realizadas'],
-        "cobradas" => (int)$statsIncidencias['cobradas'],
-        "finalizadas" => (int)$statsIncidencias['finalizadas'],
-        "pendientes" => (int)$statsIncidencias['pendientes']
+        "cobradas" => (int)$statsIncidencias['cobradas']
     )
 ));
 ?>

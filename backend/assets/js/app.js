@@ -29,8 +29,7 @@ class VMCApp {
             },
             incidencias: {
                 realizado: '',
-                cobrado: '',
-                finalizada: ''
+                cobrado: ''
             }
         };
 
@@ -127,7 +126,7 @@ class VMCApp {
         });
 
         // Incidencias filters
-        ['filter-realizado', 'filter-cobrado', 'filter-finalizada', 'incidencias-page-size'].forEach(id => {
+        ['filter-realizado', 'filter-cobrado', 'incidencias-page-size'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
                 element.addEventListener('change', () => {
@@ -266,13 +265,6 @@ class VMCApp {
                                     <div class="col-md-6">
                                         <label for="incidencia-cobrado" class="form-label fw-semibold">Cobrado</label>
                                         <select class="form-select" id="incidencia-cobrado" name="cobrado">
-                                            <option value="0">No</option>
-                                            <option value="1">Sí</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="incidencia-finalizada" class="form-label fw-semibold">Finalizada</label>
-                                        <select class="form-select" id="incidencia-finalizada" name="finalizada">
                                             <option value="0">No</option>
                                             <option value="1">Sí</option>
                                         </select>
@@ -505,7 +497,7 @@ class VMCApp {
 
         // Reset pagination and filters
         this.pagination.incidencias = { page: 1, limit: 20, total: 0, pages: 0 };
-        this.filters.incidencias = { realizado: '', cobrado: '', finalizada: '' };
+        this.filters.incidencias = { realizado: '', cobrado: '' };
 
         this.showSection('incidencias');
     }
@@ -798,18 +790,18 @@ class VMCApp {
                 description: 'Incidencias en el sistema'
             },
             {
-                title: 'Incidencias Finalizadas',
-                value: stats.incidencias?.finalizadas || 0,
+                title: 'Incidencias Realizadas',
+                value: stats.incidencias?.realizadas || 0,
                 icon: 'bi-check-circle',
                 color: 'success',
                 description: 'Incidencias completadas'
             },
             {
-                title: 'Incidencias Pendientes',
-                value: stats.incidencias?.pendientes || 0,
-                icon: 'bi-clock',
+                title: 'Incidencias Cobradas',
+                value: stats.incidencias?.cobradas || 0,
+                icon: 'bi-currency-dollar',
                 color: 'warning',
-                description: 'Incidencias por resolver'
+                description: 'Incidencias cobradas'
             }
         ];
 
@@ -916,28 +908,22 @@ class VMCApp {
         }
 
         const data = {
-            labels: ['Total', 'Realizadas', 'Cobradas', 'Finalizadas', 'Pendientes'],
+            labels: ['Total', 'Realizadas', 'Cobradas'],
             datasets: [{
                 label: 'Cantidad',
                 data: [
                     stats.incidencias?.total || 0,
                     stats.incidencias?.realizadas || 0,
-                    stats.incidencias?.cobradas || 0,
-                    stats.incidencias?.finalizadas || 0,
-                    stats.incidencias?.pendientes || 0
+                    stats.incidencias?.cobradas || 0
                 ],
                 backgroundColor: [
                     '#0d6efd',
                     '#198754',
-                    '#20c997',
-                    '#0dcaf0',
                     '#ffc107'
                 ],
                 borderColor: [
                     '#0a58ca',
                     '#146c43',
-                    '#1aa179',
-                    '#087990',
                     '#cc9a00'
                 ],
                 borderWidth: 1,
@@ -986,12 +972,16 @@ class VMCApp {
             this.charts.distribution.destroy();
         }
 
+        const realizadas = stats.incidencias?.realizadas || 0;
+        const total = stats.incidencias?.total || 0;
+        const noRealizadas = total - realizadas;
+
         const data = {
-            labels: ['Finalizadas', 'Pendientes'],
+            labels: ['Realizadas', 'No Realizadas'],
             datasets: [{
                 data: [
-                    stats.incidencias?.finalizadas || 0,
-                    stats.incidencias?.pendientes || 0
+                    realizadas,
+                    noRealizadas
                 ],
                 backgroundColor: ['#198754', '#ffc107'],
                 borderColor: ['#146c43', '#cc9a00'],
@@ -1404,7 +1394,7 @@ class VMCApp {
         if (!data.data || data.data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="6" class="text-center py-4">
                         <i class="bi bi-clipboard-x text-muted" style="font-size: 3rem;"></i>
                         <p class="text-muted mb-0 mt-2">No se encontraron incidencias</p>
                         <button class="btn btn-outline-primary btn-sm mt-2" onclick="clearIncidenciasFilters()">
@@ -1434,9 +1424,6 @@ class VMCApp {
                     </td>
                     <td class="text-center" style="vertical-align: top;">
                         ${this.getStatusBadge(incidencia.cobrado)}
-                    </td>
-                    <td class="text-center" style="vertical-align: top;">
-                        ${this.getStatusBadge(incidencia.finalizada)}
                     </td>
                     <td class="text-center" style="vertical-align: top;">
                         <div class="btn-group btn-group-sm" role="group">
@@ -1563,10 +1550,9 @@ class VMCApp {
     updateIncidenciasFilters() {
         const realizado = document.getElementById('filter-realizado')?.value || '';
         const cobrado = document.getElementById('filter-cobrado')?.value || '';
-        const finalizada = document.getElementById('filter-finalizada')?.value || '';
         const pageSize = parseInt(document.getElementById('incidencias-page-size')?.value) || 20;
 
-        this.filters.incidencias = { realizado, cobrado, finalizada };
+        this.filters.incidencias = { realizado, cobrado };
         this.pagination.incidencias.limit = pageSize;
         this.pagination.incidencias.page = 1;
 
@@ -1579,10 +1565,9 @@ class VMCApp {
     clearIncidenciasFilters() {
         document.getElementById('filter-realizado').value = '';
         document.getElementById('filter-cobrado').value = '';
-        document.getElementById('filter-finalizada').value = '';
         document.getElementById('incidencias-page-size').value = '20';
 
-        this.filters.incidencias = { realizado: '', cobrado: '', finalizada: '' };
+        this.filters.incidencias = { realizado: '', cobrado: '' };
         this.pagination.incidencias = { page: 1, limit: 20, total: 0, pages: 0 };
 
         this.loadIncidencias();
@@ -1622,7 +1607,6 @@ class VMCApp {
             document.getElementById('incidencia-respuesta').value = incidencia.respuesta || '';
             document.getElementById('incidencia-realizado').value = incidencia.realizado || '0';
             document.getElementById('incidencia-cobrado').value = incidencia.cobrado || '0';
-            document.getElementById('incidencia-finalizada').value = incidencia.finalizada || '0';
         } else {
             // Create mode
             document.getElementById('incidencia-modal-title').textContent = 'Nueva Incidencia';
@@ -1632,7 +1616,6 @@ class VMCApp {
             document.getElementById('incidencia-fecha').value = this.getCurrentDate();
             document.getElementById('incidencia-realizado').value = '0';
             document.getElementById('incidencia-cobrado').value = '0';
-            document.getElementById('incidencia-finalizada').value = '0';
         }
 
         // Setup form submission
@@ -1808,7 +1791,6 @@ class VMCApp {
         // Get filter values
         const realizadoFilter = document.getElementById('filter-realizado');
         const cobradoFilter = document.getElementById('filter-cobrado');
-        const finalizadaFilter = document.getElementById('filter-finalizada');
         const pageSizeElement = document.getElementById('incidencias-page-size');
 
         // Update filters
@@ -1817,9 +1799,6 @@ class VMCApp {
         }
         if (cobradoFilter) {
             this.filters.incidencias.cobrado = cobradoFilter.value;
-        }
-        if (finalizadaFilter) {
-            this.filters.incidencias.finalizada = finalizadaFilter.value;
         }
         if (pageSizeElement) {
             this.pagination.incidencias.limit = parseInt(pageSizeElement.value);
@@ -1835,7 +1814,7 @@ class VMCApp {
      */
     clearIncidenciasFilters() {
         // Reset filter selects
-        ['filter-realizado', 'filter-cobrado', 'filter-finalizada'].forEach(id => {
+        ['filter-realizado', 'filter-cobrado'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
                 element.value = '';
@@ -1851,8 +1830,7 @@ class VMCApp {
         // Reset filters
         this.filters.incidencias = {
             realizado: '',
-            cobrado: '',
-            finalizada: ''
+            cobrado: ''
         };
 
         // Reset pagination
