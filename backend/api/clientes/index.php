@@ -74,7 +74,20 @@ switch ($method) {
             $cliente->razon_social = $data->razon_social ?? '';
             $cliente->dni = $data->dni ?? '';
             $cliente->tlf = $data->tlf ?? null;
+            $cliente->email = $data->email ?? '';
             $cliente->observaciones = $data->observaciones ?? '';
+
+            // Validar formato de email si se proporciona uno
+            if (!empty($cliente->email) && trim($cliente->email) !== '') {
+                if (!filter_var($cliente->email, FILTER_VALIDATE_EMAIL)) {
+                    http_response_code(400); // Bad Request
+                    echo json_encode(array(
+                        "message" => "Formato de email inválido",
+                        "error" => "INVALID_EMAIL"
+                    ));
+                    break;
+                }
+            }
 
             // Validar DNI duplicado
             if (!empty($cliente->dni) && trim($cliente->dni) !== '') {
@@ -116,7 +129,20 @@ switch ($method) {
             $cliente->razon_social = $data->razon_social ?? '';
             $cliente->dni = $data->dni ?? '';
             $cliente->tlf = $data->tlf ?? null;
+            $cliente->email = $data->email ?? '';
             $cliente->observaciones = $data->observaciones ?? '';
+
+            // Validar formato de email si se proporciona uno
+            if (!empty($cliente->email) && trim($cliente->email) !== '') {
+                if (!filter_var($cliente->email, FILTER_VALIDATE_EMAIL)) {
+                    http_response_code(400); // Bad Request
+                    echo json_encode(array(
+                        "message" => "Formato de email inválido",
+                        "error" => "INVALID_EMAIL"
+                    ));
+                    break;
+                }
+            }
 
             // Validar DNI duplicado (excluyendo el cliente actual)
             if (!empty($cliente->dni) && trim($cliente->dni) !== '') {

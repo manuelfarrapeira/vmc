@@ -206,6 +206,11 @@ class VMCApp {
                                         <input type="tel" class="form-control" id="cliente-telefono" name="tlf" pattern="[0-9]{9}">
                                         <div class="form-text">Formato: 9 dígitos sin espacios</div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="cliente-email" class="form-label fw-semibold">Email</label>
+                                        <input type="email" class="form-control" id="cliente-email" name="email">
+                                        <div class="invalid-feedback">El formato del email no es válido.</div>
+                                    </div>
                                     <div class="col-12">
                                         <label for="cliente-observaciones" class="form-label fw-semibold">Observaciones</label>
                                         <textarea class="form-control" id="cliente-observaciones" name="observaciones" rows="3" maxlength="200"></textarea>
@@ -1210,7 +1215,7 @@ class VMCApp {
         if (!data.data || data.data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
                         <p class="text-muted mb-0 mt-2">No se encontraron clientes</p>
                         <button class="btn btn-outline-primary btn-sm mt-2" onclick="clearClientesFilters()">
@@ -1231,6 +1236,9 @@ class VMCApp {
                     </td>
                     <td>
                         ${cliente.tlf ? `<a href="tel:${cliente.tlf}" class="text-decoration-none" onclick="event.stopPropagation();">${cliente.tlf}</a>` : ''}
+                    </td>
+                    <td>
+                        ${cliente.email ? `<a href="mailto:${cliente.email}" class="text-decoration-none" onclick="event.stopPropagation();">${this.escapeHtml(cliente.email)}</a>` : ''}
                     </td>
                     <td>
                         <span class="text-truncate d-block" style="max-width: 200px;" title="${this.escapeHtml(cliente.observaciones || '')}">
@@ -1295,7 +1303,7 @@ class VMCApp {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4 text-danger">
+                    <td colspan="8" class="text-center py-4 text-danger">
                         <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
                         <p class="mb-0 mt-2">Error al cargar clientes</p>
                         <small class="text-muted">${error}</small>
@@ -1452,6 +1460,7 @@ class VMCApp {
             document.getElementById('cliente-razon').value = cliente.razon_social || '';
             document.getElementById('cliente-dni-cif').value = cliente.dni || '';
             document.getElementById('cliente-telefono').value = cliente.tlf || '';
+            document.getElementById('cliente-email').value = cliente.email || '';
             document.getElementById('cliente-observaciones').value = cliente.observaciones || '';
 
             // Show documento actual if exists
@@ -1497,6 +1506,23 @@ class VMCApp {
 
             const clienteId = document.getElementById('cliente-id').value;
             const dni = data.dni ? data.dni.trim() : '';
+            const email = data.email ? data.email.trim() : '';
+
+            // Validar formato de email si se proporciona uno
+            if (email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    this.showToast('El formato del email no es válido', 'error');
+                    const emailInput = document.getElementById('cliente-email');
+                    if (emailInput) {
+                        emailInput.classList.add('is-invalid');
+                        setTimeout(() => {
+                            emailInput.classList.remove('is-invalid');
+                        }, 3000);
+                    }
+                    return;
+                }
+            }
 
             // Validar DNI/CIF duplicado solo si se proporciona uno
             if (dni) {

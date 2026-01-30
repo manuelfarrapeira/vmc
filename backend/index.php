@@ -308,6 +308,9 @@
                                                     <th class="fw-semibold">
                                                         <i class="bi bi-telephone me-1"></i>Teléfono
                                                     </th>
+                                                    <th class="fw-semibold">
+                                                        <i class="bi bi-envelope me-1"></i>Email
+                                                    </th>
                                                     <th class="fw-semibold">Observaciones</th>
                                                     <th class="fw-semibold text-center">Documento</th>
                                                     <th class="fw-semibold text-center" width="180">Acciones</th>

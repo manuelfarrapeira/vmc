@@ -188,6 +188,7 @@ class Cliente {
             $this->razon_social = $row['razon_social'];
             $this->dni = $row['dni'];
             $this->tlf = $row['tlf'];
+            $this->email = isset($row['email']) ? $row['email'] : null;
             $this->observaciones = $row['observaciones'];
             $this->documentacion = isset($row['documentacion']) ? $row['documentacion'] : null;
             return true;
@@ -197,7 +198,7 @@ class Cliente {
 
     public function update() {
         $query = "UPDATE " . $this->table_name . " 
-                  SET nombre=:nombre, razon_social=:razon_social, dni=:dni, tlf=:tlf, observaciones=:observaciones 
+                  SET nombre=:nombre, razon_social=:razon_social, dni=:dni, tlf=:tlf, email=:email, observaciones=:observaciones 
                   WHERE id=:id";
 
         $stmt = $this->conn->prepare($query);
@@ -206,6 +207,7 @@ class Cliente {
         $this->razon_social = htmlspecialchars(strip_tags($this->razon_social));
         $this->dni = htmlspecialchars(strip_tags($this->dni));
         $this->tlf = htmlspecialchars(strip_tags($this->tlf));
+        $this->email = htmlspecialchars(strip_tags($this->email));
         $this->observaciones = htmlspecialchars(strip_tags($this->observaciones));
         $this->id = htmlspecialchars(strip_tags($this->id));
 
@@ -213,6 +215,7 @@ class Cliente {
         $stmt->bindParam(":razon_social", $this->razon_social);
         $stmt->bindParam(":dni", $this->dni);
         $stmt->bindParam(":tlf", $this->tlf);
+        $stmt->bindParam(":email", $this->email);
         $stmt->bindParam(":observaciones", $this->observaciones);
         $stmt->bindParam(":id", $this->id);
 
