@@ -76,6 +76,20 @@ switch ($method) {
             $cliente->tlf = $data->tlf ?? null;
             $cliente->observaciones = $data->observaciones ?? '';
 
+            // Validar DNI duplicado
+            if (!empty($cliente->dni) && trim($cliente->dni) !== '') {
+                $existingId = $cliente->checkDniExists($cliente->dni);
+                if ($existingId) {
+                    http_response_code(409); // Conflict
+                    echo json_encode(array(
+                        "message" => "Ya existe un cliente con ese DNI/CIF",
+                        "error" => "DNI_DUPLICATE",
+                        "existingClienteId" => $existingId
+                    ));
+                    break;
+                }
+            }
+
             if ($cliente->create()) {
                 http_response_code(201);
                 echo json_encode(array("message" => "Cliente creado exitosamente"));
@@ -99,6 +113,20 @@ switch ($method) {
             $cliente->dni = $data->dni ?? '';
             $cliente->tlf = $data->tlf ?? null;
             $cliente->observaciones = $data->observaciones ?? '';
+
+            // Validar DNI duplicado (excluyendo el cliente actual)
+            if (!empty($cliente->dni) && trim($cliente->dni) !== '') {
+                $existingId = $cliente->checkDniExists($cliente->dni, $cliente->id);
+                if ($existingId) {
+                    http_response_code(409); // Conflict
+                    echo json_encode(array(
+                        "message" => "Ya existe otro cliente con ese DNI/CIF",
+                        "error" => "DNI_DUPLICATE",
+                        "existingClienteId" => $existingId
+                    ));
+                    break;
+                }
+            }
 
             if ($cliente->update()) {
                 http_response_code(200);

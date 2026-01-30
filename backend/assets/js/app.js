@@ -1429,6 +1429,24 @@ class VMCApp {
             const data = Object.fromEntries(formData);
 
             const clienteId = document.getElementById('cliente-id').value;
+            const dni = data.dni ? data.dni.trim() : '';
+
+            // Validar DNI/CIF duplicado solo si se proporciona uno
+            if (dni) {
+                const isDuplicate = await this.checkDniDuplicate(dni, clienteId);
+                if (isDuplicate) {
+                    this.showToast('Ya existe un cliente con ese DNI/CIF', 'error');
+                    const dniInput = document.getElementById('cliente-dni-cif');
+                    if (dniInput) {
+                        dniInput.classList.add('is-invalid');
+                        // Remove invalid class after 3 seconds
+                        setTimeout(() => {
+                            dniInput.classList.remove('is-invalid');
+                        }, 3000);
+                    }
+                    return;
+                }
+            }
 
             if (clienteId) {
                 // Update
@@ -1450,6 +1468,39 @@ class VMCApp {
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
+        }
+    }
+
+    /**
+     * Check if DNI/CIF already exists
+     */
+    async checkDniDuplicate(dni, excludeClienteId = null) {
+        try {
+            // Get all clientes
+            const response = await this.apiCall('clientes/index.php?limit=10000', 'GET');
+
+            if (response && response.data) {
+                // Check if any cliente has the same DNI/CIF
+                const duplicate = response.data.find(cliente => {
+                    const clienteDni = (cliente.dni || '').trim().toLowerCase();
+                    const searchDni = dni.trim().toLowerCase();
+
+                    // Ignore if it's the same cliente being edited
+                    if (excludeClienteId && cliente.id == excludeClienteId) {
+                        return false;
+                    }
+
+                    return clienteDni === searchDni && clienteDni !== '';
+                });
+
+                return !!duplicate;
+            }
+
+            return false;
+        } catch (error) {
+            console.error('Error checking DNI duplicate:', error);
+            // En caso de error, permitir continuar (no bloquear la operación)
+            return false;
         }
     }
 

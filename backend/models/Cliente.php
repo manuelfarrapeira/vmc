@@ -229,5 +229,34 @@ class Cliente {
         }
         return false;
     }
+
+    /**
+     * Check if DNI/CIF already exists
+     * Returns the cliente ID if exists, false otherwise
+     */
+    public function checkDniExists($dni, $excludeId = null) {
+        // If DNI is empty, return false (no duplicate)
+        if (empty($dni) || trim($dni) === '') {
+            return false;
+        }
+
+        $query = "SELECT id FROM " . $this->table_name . " WHERE LOWER(TRIM(dni)) = LOWER(TRIM(:dni))";
+
+        if ($excludeId !== null) {
+            $query .= " AND id != :excludeId";
+        }
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":dni", $dni);
+
+        if ($excludeId !== null) {
+            $stmt->bindParam(":excludeId", $excludeId, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ? $result['id'] : false;
+    }
 }
 ?>
