@@ -142,6 +142,14 @@ body {
     .content-section {
         padding: 1rem 0;
     }
+
+    /* Evitar saltos de línea en nombres de clientes en tablets */
+    #clientes-table td:first-child,
+    #clientes-table td:first-child .fw-semibold {
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+    }
 }
 
 /* Animation classes */
@@ -303,6 +311,21 @@ body {
 
     .modal-dialog {
         margin: 0.5rem;
+    }
+
+    /* Evitar saltos de línea en nombres de clientes en móvil */
+    #clientes-table td:first-child,
+    #clientes-table td:first-child .fw-semibold {
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        min-width: auto !important;
+        max-width: none !important;
+    }
+
+    /* Permitir que la tabla se expanda horizontalmente si es necesario */
+    #clientes-table {
+        table-layout: auto !important;
     }
 }
 

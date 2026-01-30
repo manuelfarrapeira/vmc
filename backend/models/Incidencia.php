@@ -223,7 +223,13 @@ class Incidencia {
 
         $stmt = $this->conn->prepare($query);
 
-        $stmt->bindParam(":documentacion", $this->documentacion);
+        // Bind NULL explícitamente si documentacion es null
+        if ($this->documentacion === null) {
+            $stmt->bindValue(":documentacion", null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindParam(":documentacion", $this->documentacion);
+        }
+
         $stmt->bindParam(":id", $this->id);
 
         if($stmt->execute()) {
