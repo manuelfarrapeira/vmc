@@ -13,6 +13,7 @@ class VMCApp {
         this.currentCliente = null;
         this.currentIncidencias = []; // Almacenar incidencias cargadas
         this.allClientes = []; // Almacenar todos los clientes para búsqueda
+        this.clientesImportar = null; // Almacenar clientes a importar desde CSV
 
         // Estado de paginación
         this.pagination = {
@@ -203,12 +204,13 @@ class VMCApp {
                                     </div>
                                     <div class="col-md-6">
                                         <label for="cliente-telefono" class="form-label fw-semibold">Teléfono</label>
-                                        <input type="tel" class="form-control" id="cliente-telefono" name="tlf" pattern="[0-9]{9}">
+                                        <input type="text" class="form-control" id="cliente-telefono" name="tlf" placeholder="666555444">
                                         <div class="form-text">Formato: 9 dígitos sin espacios</div>
+                                        <div class="invalid-feedback">El teléfono debe tener 9 dígitos.</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="cliente-email" class="form-label fw-semibold">Email</label>
-                                        <input type="email" class="form-control" id="cliente-email" name="email">
+                                        <input type="text" class="form-control" id="cliente-email" name="email" placeholder="ejemplo@dominio.com">
                                         <div class="invalid-feedback">El formato del email no es válido.</div>
                                     </div>
                                     <div class="col-12">
@@ -244,6 +246,74 @@ class VMCApp {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Importar Clientes Modal -->
+            <div class="modal fade" id="importarClientesModal" tabindex="-1" aria-labelledby="importarClientesModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="importarClientesModalLabel">
+                                <i class="bi bi-upload me-2"></i>Importar Clientes desde CSV
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="importar-step-1">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Formato del archivo CSV:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Separador: punto y coma (;)</li>
+                                        <li>Orden de campos: Nombre;Razón Social;DNI/CIF;Teléfono;Email</li>
+                                        <li>Si algún campo no lo tiene se pondrán 2 ; seguidos</li>
+                                        <li>Ejemplo: Juan Pérez;JuanPerez SL;12345678A;666555444;juan@ejemplo.com</li>
+                                    </ul>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="csv-file-input" class="form-label fw-semibold">Seleccionar archivo CSV</label>
+                                    <input type="file" class="form-control" id="csv-file-input" accept=".csv">
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="procesarCSV()">
+                                    <i class="bi bi-arrow-right me-1"></i>Procesar archivo
+                                </button>
+                            </div>
+                            <div id="importar-step-2" style="display: none;">
+                                <div class="alert alert-warning" id="preview-warnings" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Advertencias:</strong>
+                                    <ul id="preview-warnings-list" class="mb-0 mt-2"></ul>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="40">
+                                                    <input type="checkbox" id="select-all-preview" checked onchange="toggleSelectAllPreview(this.checked)">
+                                                </th>
+                                                <th>Nombre</th>
+                                                <th>Razón Social</th>
+                                                <th>DNI/CIF</th>
+                                                <th>Teléfono</th>
+                                                <th>Email</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="preview-clientes-tbody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-secondary" onclick="volverASeleccionarArchivo()">
+                                        <i class="bi bi-arrow-left me-1"></i>Volver
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="importarClientesSeleccionados()">
+                                        <i class="bi bi-check-lg me-1"></i>Importar clientes seleccionados
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1451,6 +1521,16 @@ class VMCApp {
         const docNombre = document.getElementById('cliente-documento-actual-nombre');
         docContainer.style.display = 'none';
 
+        // Limpiar errores de validación previos
+        const emailInput = document.getElementById('cliente-email');
+        const telefonoInput = document.getElementById('cliente-telefono');
+        if (emailInput) {
+            emailInput.classList.remove('is-invalid');
+        }
+        if (telefonoInput) {
+            telefonoInput.classList.remove('is-invalid');
+        }
+
         if (cliente) {
             // Edit mode
             document.getElementById('cliente-modal-title').textContent = 'Editar Cliente';
@@ -1477,6 +1557,70 @@ class VMCApp {
 
         // Setup form submission
         form.onsubmit = (e) => this.handleClienteSubmit(e);
+
+        // Setup email validation on blur (reutilizando emailInput ya declarado)
+        if (emailInput) {
+            emailInput.addEventListener('blur', () => {
+                const email = emailInput.value.trim();
+                if (email) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        emailInput.classList.add('is-invalid');
+                    } else {
+                        emailInput.classList.remove('is-invalid');
+                    }
+                } else {
+                    emailInput.classList.remove('is-invalid');
+                }
+            });
+
+            // Remover error mientras escribe
+            emailInput.addEventListener('input', () => {
+                if (emailInput.classList.contains('is-invalid')) {
+                    const email = emailInput.value.trim();
+                    if (email) {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (emailRegex.test(email)) {
+                            emailInput.classList.remove('is-invalid');
+                        }
+                    } else {
+                        emailInput.classList.remove('is-invalid');
+                    }
+                }
+            });
+        }
+
+        // Setup teléfono validation on blur
+        if (telefonoInput) {
+            telefonoInput.addEventListener('blur', () => {
+                const telefono = telefonoInput.value.trim();
+                if (telefono) {
+                    const telefonoRegex = /^[0-9]{9}$/;
+                    if (!telefonoRegex.test(telefono)) {
+                        telefonoInput.classList.add('is-invalid');
+                    } else {
+                        telefonoInput.classList.remove('is-invalid');
+                    }
+                } else {
+                    telefonoInput.classList.remove('is-invalid');
+                }
+            });
+
+            // Remover error mientras escribe
+            telefonoInput.addEventListener('input', () => {
+                if (telefonoInput.classList.contains('is-invalid')) {
+                    const telefono = telefonoInput.value.trim();
+                    if (telefono) {
+                        const telefonoRegex = /^[0-9]{9}$/;
+                        if (telefonoRegex.test(telefono)) {
+                            telefonoInput.classList.remove('is-invalid');
+                        }
+                    } else {
+                        telefonoInput.classList.remove('is-invalid');
+                    }
+                }
+            });
+        }
 
         modal.show();
     }
@@ -1507,6 +1651,23 @@ class VMCApp {
             const clienteId = document.getElementById('cliente-id').value;
             const dni = data.dni ? data.dni.trim() : '';
             const email = data.email ? data.email.trim() : '';
+            const telefono = data.tlf ? data.tlf.trim() : '';
+
+            // Validar formato de teléfono si se proporciona uno
+            if (telefono) {
+                const telefonoRegex = /^[0-9]{9}$/;
+                if (!telefonoRegex.test(telefono)) {
+                    this.showToast('El teléfono debe tener 9 dígitos', 'error');
+                    const telefonoInput = document.getElementById('cliente-telefono');
+                    if (telefonoInput) {
+                        telefonoInput.classList.add('is-invalid');
+                        setTimeout(() => {
+                            telefonoInput.classList.remove('is-invalid');
+                        }, 3000);
+                    }
+                    return;
+                }
+            }
 
             // Validar formato de email si se proporciona uno
             if (email) {
@@ -2453,6 +2614,268 @@ class VMCApp {
     }
 
     /**
+     * Open importar clientes modal
+     */
+    openImportarClientesModal() {
+        const modal = new bootstrap.Modal(document.getElementById('importarClientesModal'));
+
+        // Reset modal
+        document.getElementById('csv-file-input').value = '';
+        document.getElementById('importar-step-1').style.display = 'block';
+        document.getElementById('importar-step-2').style.display = 'none';
+        document.getElementById('preview-warnings').style.display = 'none';
+        document.getElementById('preview-clientes-tbody').innerHTML = '';
+        document.getElementById('preview-warnings-list').innerHTML = '';
+
+        modal.show();
+    }
+
+    /**
+     * Procesar archivo CSV
+     */
+    async procesarCSV() {
+        const fileInput = document.getElementById('csv-file-input');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            this.showToast('Por favor selecciona un archivo CSV', 'error');
+            return;
+        }
+
+        if (!file.name.endsWith('.csv')) {
+            this.showToast('El archivo debe ser un CSV', 'error');
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            const lines = text.split('\n').filter(line => line.trim());
+
+            if (lines.length === 0) {
+                this.showToast('El archivo CSV está vacío', 'error');
+                return;
+            }
+
+            const clientes = [];
+            const warnings = [];
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const fields = line.split(';').map(f => f.trim());
+
+                // Crear objeto cliente
+                const cliente = {
+                    nombre: fields[0] || '',
+                    razon_social: fields[1] || '',
+                    dni: fields[2] || '',
+                    tlf: fields[3] || '',
+                    email: fields[4] || '',
+                    valid: true,
+                    errors: [],
+                    lineNumber: i + 1
+                };
+
+                // Validar nombre (obligatorio)
+                if (!cliente.nombre) {
+                    cliente.valid = false;
+                    cliente.errors.push('Falta el nombre');
+                }
+
+                // Validar teléfono si existe
+                if (cliente.tlf && cliente.tlf.trim() !== '') {
+                    const telefonoRegex = /^[0-9]{9}$/;
+                    if (!telefonoRegex.test(cliente.tlf)) {
+                        cliente.valid = false;
+                        cliente.errors.push('Teléfono con formato inválido (debe ser 9 dígitos)');
+                    }
+                }
+
+                // Validar email si existe
+                if (cliente.email && cliente.email.trim() !== '') {
+                    if (!emailRegex.test(cliente.email)) {
+                        cliente.valid = false;
+                        cliente.errors.push('Email con formato inválido');
+                    }
+                }
+
+                // Validar DNI duplicado si existe
+                if (cliente.dni && cliente.dni.trim() !== '') {
+                    try {
+                        const isDuplicate = await this.checkDniDuplicate(cliente.dni, null);
+                        if (isDuplicate) {
+                            cliente.valid = false;
+                            cliente.errors.push('DNI/CIF ya existe');
+                        }
+                    } catch (error) {
+                        console.error('Error checking DNI:', error);
+                    }
+                }
+
+                clientes.push(cliente);
+
+                // Agregar advertencias
+                if (!cliente.valid) {
+                    warnings.push(`Línea ${cliente.lineNumber}: ${cliente.errors.join(', ')}`);
+                }
+            }
+
+            // Guardar clientes en memoria
+            this.clientesImportar = clientes;
+
+            // Mostrar preview
+            this.mostrarPreviewClientes(clientes, warnings);
+
+            // Cambiar a step 2
+            document.getElementById('importar-step-1').style.display = 'none';
+            document.getElementById('importar-step-2').style.display = 'block';
+
+        } catch (error) {
+            console.error('Error processing CSV:', error);
+            this.showToast('Error al procesar el archivo CSV: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Mostrar preview de clientes a importar
+     */
+    mostrarPreviewClientes(clientes, warnings) {
+        const tbody = document.getElementById('preview-clientes-tbody');
+        const warningsContainer = document.getElementById('preview-warnings');
+        const warningsList = document.getElementById('preview-warnings-list');
+
+        // Mostrar advertencias
+        if (warnings.length > 0) {
+            warningsContainer.style.display = 'block';
+            warningsList.innerHTML = warnings.map(w => `<li>${this.escapeHtml(w)}</li>`).join('');
+        } else {
+            warningsContainer.style.display = 'none';
+        }
+
+        // Renderizar tabla
+        tbody.innerHTML = clientes.map((cliente, index) => {
+            const rowClass = cliente.valid ? '' : 'table-danger';
+            const statusBadge = cliente.valid
+                ? '<span class="badge bg-success">Válido</span>'
+                : `<span class="badge bg-danger" title="${cliente.errors.join(', ')}">${cliente.errors.length} error(es)</span>`;
+
+            return `
+                <tr class="${rowClass}">
+                    <td>
+                        <input type="checkbox" 
+                               class="preview-checkbox" 
+                               data-index="${index}" 
+                               ${cliente.valid ? 'checked' : 'disabled'}
+                               onchange="vmcApp.toggleClienteImport(${index}, this.checked)">
+                    </td>
+                    <td>${this.escapeHtml(cliente.nombre)}</td>
+                    <td>${this.escapeHtml(cliente.razon_social)}</td>
+                    <td>${this.escapeHtml(cliente.dni)}</td>
+                    <td>${this.escapeHtml(cliente.tlf)}</td>
+                    <td>${this.escapeHtml(cliente.email)}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // Marcar clientes para importar (solo los válidos)
+        this.clientesImportar.forEach(cliente => {
+            cliente.import = cliente.valid;
+        });
+    }
+
+    /**
+     * Toggle cliente import
+     */
+    toggleClienteImport(index, checked) {
+        if (this.clientesImportar && this.clientesImportar[index]) {
+            this.clientesImportar[index].import = checked;
+        }
+    }
+
+    /**
+     * Toggle select all preview
+     */
+    toggleSelectAllPreview(checked) {
+        const checkboxes = document.querySelectorAll('.preview-checkbox:not(:disabled)');
+        checkboxes.forEach(cb => {
+            cb.checked = checked;
+            const index = parseInt(cb.dataset.index);
+            if (this.clientesImportar && this.clientesImportar[index]) {
+                this.clientesImportar[index].import = checked;
+            }
+        });
+    }
+
+    /**
+     * Volver a seleccionar archivo
+     */
+    volverASeleccionarArchivo() {
+        document.getElementById('importar-step-1').style.display = 'block';
+        document.getElementById('importar-step-2').style.display = 'none';
+        this.clientesImportar = null;
+    }
+
+    /**
+     * Importar clientes seleccionados
+     */
+    async importarClientesSeleccionados() {
+        if (!this.clientesImportar) return;
+
+        const clientesToImport = this.clientesImportar.filter(c => c.import && c.valid);
+
+        if (clientesToImport.length === 0) {
+            this.showToast('No hay clientes válidos seleccionados para importar', 'error');
+            return;
+        }
+
+        if (!confirm(`¿Importar ${clientesToImport.length} cliente(s)?`)) {
+            return;
+        }
+
+        try {
+            let imported = 0;
+            let failed = 0;
+
+            for (const cliente of clientesToImport) {
+                try {
+                    await this.apiCall('clientes/index.php', 'POST', {
+                        nombre: cliente.nombre,
+                        razon_social: cliente.razon_social,
+                        dni: cliente.dni,
+                        tlf: cliente.tlf,
+                        email: cliente.email,
+                        observaciones: ''
+                    });
+                    imported++;
+                } catch (error) {
+                    console.error('Error importing cliente:', cliente, error);
+                    failed++;
+                }
+            }
+
+            // Cerrar modal
+            bootstrap.Modal.getInstance(document.getElementById('importarClientesModal')).hide();
+
+            // Mostrar resultado
+            if (failed === 0) {
+                this.showToast(`${imported} cliente(s) importado(s) exitosamente`, 'success');
+            } else {
+                this.showToast(`${imported} importados, ${failed} fallaron`, 'warning');
+            }
+
+            // Recargar clientes
+            this.loadClientes();
+
+        } catch (error) {
+            console.error('Error importing clientes:', error);
+            this.showToast('Error al importar clientes: ' + error, 'error');
+        }
+    }
+
+    /**
      * Open incidencia modal from clientes list
      */
     async openIncidenciaFromClientesModal() {
@@ -2841,6 +3264,26 @@ function loadDashboard() {
 
 function openClienteModal(cliente = null) {
     vmcApp?.openClienteModal(cliente);
+}
+
+function openImportarClientesModal() {
+    vmcApp?.openImportarClientesModal();
+}
+
+function procesarCSV() {
+    vmcApp?.procesarCSV();
+}
+
+function toggleSelectAllPreview(checked) {
+    vmcApp?.toggleSelectAllPreview(checked);
+}
+
+function volverASeleccionarArchivo() {
+    vmcApp?.volverASeleccionarArchivo();
+}
+
+function importarClientesSeleccionados() {
+    vmcApp?.importarClientesSeleccionados();
 }
 
 function openIncidenciaModal(incidencia = null) {

@@ -244,6 +244,9 @@
                                     <button class="btn btn-primary" onclick="openClienteModal()">
                                         <i class="bi bi-plus-lg me-2"></i>Nuevo Cliente
                                     </button>
+                                    <button class="btn btn-outline-primary" onclick="openImportarClientesModal()">
+                                        <i class="bi bi-upload me-2"></i>Importar CSV
+                                    </button>
                                 </div>
                             </div>
 
