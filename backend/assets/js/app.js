@@ -441,8 +441,8 @@ class VMCApp {
         document.getElementById('user-name').textContent = this.currentUser.user;
         document.getElementById('user-name-menu').textContent = this.currentUser.user;
 
-        // Show dashboard by default
-        this.showSection('dashboard');
+        // Show clientes by default
+        this.showSection('clientes');
     }
 
     /**

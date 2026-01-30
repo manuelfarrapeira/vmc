@@ -131,13 +131,13 @@
                 <div class="offcanvas-body p-0">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link py-3" href="#" data-section="dashboard" onclick="showSection('dashboard')" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-speedometer2 me-3"></i>Dashboard
+                            <a class="nav-link py-3" href="#" data-section="clientes" onclick="showSection('clientes')" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-people me-3"></i>Clientes
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link py-3" href="#" data-section="clientes" onclick="showSection('clientes')" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-people me-3"></i>Clientes
+                            <a class="nav-link py-3" href="#" data-section="dashboard" onclick="showSection('dashboard')" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-speedometer2 me-3"></i>Dashboard
                             </a>
                         </li>
                     </ul>
@@ -151,13 +151,13 @@
                         <div class="position-sticky pt-3">
                             <ul class="nav flex-column">
                                 <li class="nav-item">
-                                    <a class="nav-link py-2" href="#" data-section="dashboard" onclick="showSection('dashboard')">
-                                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                    <a class="nav-link py-2" href="#" data-section="clientes" onclick="showSection('clientes')">
+                                        <i class="bi bi-people me-2"></i>Clientes
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link py-2" href="#" data-section="clientes" onclick="showSection('clientes')">
-                                        <i class="bi bi-people me-2"></i>Clientes
+                                    <a class="nav-link py-2" href="#" data-section="dashboard" onclick="showSection('dashboard')">
+                                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
                                     </a>
                                 </li>
                             </ul>
@@ -167,7 +167,7 @@
                     <!-- Main Content -->
                     <main class="col-lg-10 ms-sm-auto px-md-4">
                         <!-- Dashboard Section -->
-                        <div id="dashboard-section" class="content-section fade-in">
+                        <div id="dashboard-section" class="content-section d-none">
                             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                                 <h1 class="h2 fw-bold">
                                     <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
@@ -232,7 +232,7 @@
                         </div>
 
                         <!-- Clientes Section -->
-                        <div id="clientes-section" class="content-section d-none">
+                        <div id="clientes-section" class="content-section fade-in">
                             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                                 <h1 class="h2 fw-bold">
                                     <i class="bi bi-people me-2 text-primary"></i>Gestión de Clientes
