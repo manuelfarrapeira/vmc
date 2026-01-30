@@ -419,12 +419,13 @@
                                                     <th class="fw-semibold" width="30%">Respuesta</th>
                                                     <th class="fw-semibold text-center" width="10%">Realizado</th>
                                                     <th class="fw-semibold text-center" width="10%">Cobrado</th>
+                                                    <th class="fw-semibold text-center" width="10%">Documento</th>
                                                     <th class="fw-semibold text-center" width="10%">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="incidencias-table">
                                                 <tr>
-                                                    <td colspan="6" class="text-center py-4">
+                                                    <td colspan="7" class="text-center py-4">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>

@@ -270,6 +270,23 @@ class VMCApp {
                                             <option value="1">Sí</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="incidencia-documento" class="form-label fw-semibold">Documento</label>
+                                        <input type="file" class="form-control" id="incidencia-documento" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip">
+                                        <div class="form-text">Máximo 2MB. PDF, Word, Excel, imágenes, TXT o ZIP</div>
+                                    </div>
+                                    <div class="col-12" id="documento-actual-container" style="display: none;">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="bi bi-file-earmark-text me-2"></i>
+                                            <span id="documento-actual-nombre">Documento actual</span>
+                                            <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="downloadDocumento()" title="Descargar">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger ms-1" onclick="deleteDocumento()" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -1585,7 +1602,7 @@ class VMCApp {
         if (!data.data || data.data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-4">
+                    <td colspan="7" class="text-center py-4">
                         <i class="bi bi-clipboard-x text-muted" style="font-size: 3rem;"></i>
                         <p class="text-muted mb-0 mt-2">No se encontraron incidencias</p>
                         <button class="btn btn-outline-primary btn-sm mt-2" onclick="clearIncidenciasFilters()">
@@ -1615,6 +1632,28 @@ class VMCApp {
                     </td>
                     <td class="text-center" style="vertical-align: top;">
                         ${this.getStatusBadge(incidencia.cobrado)}
+                    </td>
+                    <td class="text-center" style="vertical-align: top;">
+                        ${incidencia.documentacion ? `
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-action"
+                                    onclick="downloadDocumentoFromList(${incidencia.id})"
+                                    title="Descargar documento">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-action"
+                                    onclick="deleteDocumentoFromList(${incidencia.id})"
+                                    title="Eliminar documento">
+                                <i class="bi bi-file-earmark-x"></i>
+                            </button>
+                        </div>
+                        ` : `
+                        <button type="button" class="btn btn-outline-success btn-sm btn-action"
+                                onclick="uploadDocumentoFromList(${incidencia.id})"
+                                title="Subir documento">
+                            <i class="bi bi-upload"></i>
+                        </button>
+                        `}
                     </td>
                     <td class="text-center" style="vertical-align: top;">
                         <div class="btn-group btn-group-sm" role="group">
@@ -1787,6 +1826,11 @@ class VMCApp {
         form.reset();
         form.classList.remove('was-validated');
 
+        // Hide documento actual container by default
+        const docContainer = document.getElementById('documento-actual-container');
+        const docNombre = document.getElementById('documento-actual-nombre');
+        docContainer.style.display = 'none';
+
         if (incidencia) {
             // Edit mode
             document.getElementById('incidencia-modal-title').textContent = 'Editar Incidencia';
@@ -1798,6 +1842,12 @@ class VMCApp {
             document.getElementById('incidencia-respuesta').value = incidencia.respuesta || '';
             document.getElementById('incidencia-realizado').value = incidencia.realizado || '0';
             document.getElementById('incidencia-cobrado').value = incidencia.cobrado || '0';
+
+            // Show documento actual if exists
+            if (incidencia.documentacion) {
+                docContainer.style.display = 'block';
+                docNombre.textContent = incidencia.documentacion;
+            }
         } else {
             // Create mode
             document.getElementById('incidencia-modal-title').textContent = 'Nueva Incidencia';
@@ -1842,6 +1892,7 @@ class VMCApp {
             data.idcliente = document.getElementById('incidencia-cliente-id').value;
 
             const incidenciaId = document.getElementById('incidencia-id').value;
+            let savedIncidenciaId = incidenciaId;
 
             if (incidenciaId) {
                 // Update
@@ -1850,8 +1901,16 @@ class VMCApp {
                 this.showToast('Incidencia actualizada exitosamente', 'success');
             } else {
                 // Create
-                await this.apiCall('incidencias/index.php', 'POST', data);
+                const response = await this.apiCall('incidencias/index.php', 'POST', data);
+                // Get the created incidencia ID from response
+                savedIncidenciaId = response.id || savedIncidenciaId;
                 this.showToast('Incidencia creada exitosamente', 'success');
+            }
+
+            // Handle file upload if a file was selected
+            const fileInput = document.getElementById('incidencia-documento');
+            if (fileInput.files.length > 0 && savedIncidenciaId) {
+                await this.uploadDocumento(savedIncidenciaId, fileInput.files[0]);
             }
 
             bootstrap.Modal.getInstance(document.getElementById('incidenciaModal')).hide();
@@ -1863,6 +1922,233 @@ class VMCApp {
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
+        }
+    }
+
+    /**
+     * Upload documento to incidencia
+     */
+    async uploadDocumento(incidenciaId, file) {
+        try {
+            // Validate file size (2MB max)
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            if (file.size > maxSize) {
+                this.showToast('El archivo es demasiado grande. Máximo 2MB', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('incidencia_id', incidenciaId);
+            formData.append('documento', file);
+
+            const response = await fetch(this.apiUrl + '/incidencias/upload.php', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + this.token
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Error al subir el archivo');
+            }
+
+            this.showToast('Documento subido exitosamente', 'success');
+        } catch (error) {
+            console.error('Error uploading documento:', error);
+            this.showToast('Error al subir documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Download documento from incidencia
+     */
+    async downloadDocumento() {
+        const incidenciaId = document.getElementById('incidencia-id').value;
+        if (!incidenciaId) return;
+
+        try {
+            const url = `${this.apiUrl}/incidencias/download.php?incidencia_id=${incidenciaId}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + this.token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al descargar el archivo');
+            }
+
+            // Get filename from Content-Disposition header
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'documento';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Create blob and download
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error('Error downloading documento:', error);
+            this.showToast('Error al descargar documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Delete documento from incidencia
+     */
+    async deleteDocumento() {
+        const incidenciaId = document.getElementById('incidencia-id').value;
+        if (!incidenciaId) return;
+
+        if (!confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+            return;
+        }
+
+        try {
+            await this.apiCall('incidencias/upload.php', 'DELETE', {
+                incidencia_id: parseInt(incidenciaId)
+            });
+
+            this.showToast('Documento eliminado exitosamente', 'success');
+
+            // Hide documento container
+            document.getElementById('documento-actual-container').style.display = 'none';
+
+            // Reload incidencias
+            this.loadIncidencias();
+        } catch (error) {
+            console.error('Error deleting documento:', error);
+            this.showToast('Error al eliminar documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Download documento from list
+     */
+    async downloadDocumentoFromList(incidenciaId) {
+        if (!incidenciaId) return;
+
+        try {
+            const url = `${this.apiUrl}/incidencias/download.php?incidencia_id=${incidenciaId}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + this.token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al descargar el archivo');
+            }
+
+            // Get filename from Content-Disposition header
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'documento';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Create blob and download
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            this.showToast('Documento descargado exitosamente', 'success');
+        } catch (error) {
+            console.error('Error downloading documento:', error);
+            this.showToast('Error al descargar documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Upload documento from list
+     */
+    uploadDocumentoFromList(incidenciaId) {
+        if (!incidenciaId) return;
+
+        // Create hidden file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip';
+        fileInput.style.display = 'none';
+
+        fileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file size (2MB max)
+            const maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                this.showToast('El archivo es demasiado grande. Máximo 2MB', 'error');
+                return;
+            }
+
+            try {
+                await this.uploadDocumento(incidenciaId, file);
+
+                // Reload incidencias list to show the new document buttons
+                this.loadIncidencias();
+            } catch (error) {
+                console.error('Error uploading documento from list:', error);
+            } finally {
+                // Remove the input element
+                document.body.removeChild(fileInput);
+            }
+        };
+
+        // Trigger file selection
+        document.body.appendChild(fileInput);
+        fileInput.click();
+    }
+
+    /**
+     * Delete documento from list
+     */
+    async deleteDocumentoFromList(incidenciaId) {
+        if (!incidenciaId) return;
+
+        if (!confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+            return;
+        }
+
+        try {
+            await this.apiCall('incidencias/upload.php', 'DELETE', {
+                incidencia_id: parseInt(incidenciaId)
+            });
+
+            this.showToast('Documento eliminado exitosamente', 'success');
+
+            // Reload incidencias list
+            this.loadIncidencias();
+        } catch (error) {
+            console.error('Error deleting documento:', error);
+            this.showToast('Error al eliminar documento: ' + error, 'error');
         }
     }
 
@@ -2263,6 +2549,26 @@ function openIncidenciaModal(incidencia = null) {
 
 function openIncidenciaFromClientesModal() {
     vmcApp?.openIncidenciaFromClientesModal();
+}
+
+function downloadDocumento() {
+    vmcApp?.downloadDocumento();
+}
+
+function deleteDocumento() {
+    vmcApp?.deleteDocumento();
+}
+
+function downloadDocumentoFromList(incidenciaId) {
+    vmcApp?.downloadDocumentoFromList(incidenciaId);
+}
+
+function uploadDocumentoFromList(incidenciaId) {
+    vmcApp?.uploadDocumentoFromList(incidenciaId);
+}
+
+function deleteDocumentoFromList(incidenciaId) {
+    vmcApp?.deleteDocumentoFromList(incidenciaId);
 }
 
 function editIncidencia(incidenciaId) {

@@ -120,7 +120,8 @@ class Incidencia {
 
         try {
             if($stmt->execute()) {
-                return true;
+                $this->id = $this->conn->lastInsertId();
+                return $this->id;
             }
             return false;
         } catch(PDOException $e) {
@@ -184,9 +185,46 @@ class Incidencia {
     }
 
     public function delete() {
+        // First, get the documentacion filename before deleting the record
+        $queryGet = "SELECT documentacion FROM " . $this->table_name . " WHERE id = ?";
+        $stmtGet = $this->conn->prepare($queryGet);
+        $stmtGet->bindParam(1, $this->id);
+        $stmtGet->execute();
+        $row = $stmtGet->fetch(PDO::FETCH_ASSOC);
+
+        // If there's a document, delete the physical file
+        if ($row && !empty($row['documentacion'])) {
+            $uploadsDir = __DIR__ . '/../documentos';
+            $filePath = $uploadsDir . '/' . $row['documentacion'];
+
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+
+        // Now delete the database record
         $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $this->id);
+
+        if($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Update only documentacion field
+     */
+    public function updateDocumentacion() {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET documentacion = :documentacion 
+                  WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(":documentacion", $this->documentacion);
+        $stmt->bindParam(":id", $this->id);
 
         if($stmt->execute()) {
             return true;

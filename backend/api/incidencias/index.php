@@ -70,9 +70,13 @@ switch ($method) {
                 $incidencia->documentacion = $data->documentacion ?? '';
                 $incidencia->qr = $data->qr ?? '';
 
-                if ($incidencia->create()) {
+                $createdId = $incidencia->create();
+                if ($createdId) {
                     http_response_code(201);
-                    echo json_encode(array("message" => "Incidencia creada exitosamente"));
+                    echo json_encode(array(
+                        "message" => "Incidencia creada exitosamente",
+                        "id" => $createdId
+                    ));
                 } else {
                     http_response_code(503);
                     echo json_encode(array("message" => "No se pudo crear la incidencia"));

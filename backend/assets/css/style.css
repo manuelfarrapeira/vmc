@@ -443,3 +443,57 @@ body {
     25% { transform: translateX(-5px); }
     75% { transform: translateX(5px); }
 }
+
+/* Documento upload styles */
+#documento-actual-container {
+    margin-top: 1rem;
+}
+
+#documento-actual-container .alert {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+}
+
+#documento-actual-container .alert i {
+    font-size: 1.2rem;
+}
+
+#documento-actual-nombre {
+    flex: 1;
+    margin: 0 0.5rem;
+    font-weight: 500;
+}
+
+#incidencia-documento {
+    cursor: pointer;
+}
+
+#incidencia-documento:hover {
+    border-color: #0d6efd;
+}
+
+/* Document buttons in incidencias list */
+.btn-group-vertical.d-grid {
+    width: 100%;
+}
+
+.btn-group-vertical .btn-group {
+    width: 100%;
+}
+
+.btn-group-vertical .btn-group .btn {
+    flex: 1;
+}
+
+/* Document action buttons colors */
+.btn-outline-warning:hover {
+    color: #fff;
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+}
