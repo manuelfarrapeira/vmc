@@ -341,3 +341,22 @@ body {
     transform: rotate(0deg);
 }
 
+/* Clickable table rows */
+#clientes-table tr[style*="cursor: pointer"] {
+    transition: background-color 0.2s ease, transform 0.05s ease;
+}
+
+#clientes-table tr[style*="cursor: pointer"]:hover {
+    background-color: #f0f7ff !important;
+    transform: scale(1.01);
+}
+
+#clientes-table tr[style*="cursor: pointer"]:active {
+    background-color: #e3f2fd !important;
+    transform: scale(0.99);
+}
+
+/* Info message for clickable rows */
+.card-body .text-muted i.bi-info-circle {
+    color: #0d6efd;
+}

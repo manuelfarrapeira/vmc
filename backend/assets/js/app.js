@@ -1113,7 +1113,7 @@ class VMCApp {
             `;
         } else {
             const rows = data.data.map(cliente => `
-                <tr>
+                <tr style="cursor: pointer;" onclick="showIncidencias(${cliente.id}, '${this.escapeHtml(cliente.nombre)}')">
                     <td>
                         <div class="fw-semibold">${this.escapeHtml(cliente.nombre)}</div>
                     </td>
@@ -1122,14 +1122,14 @@ class VMCApp {
                         <code class="text-muted">${this.escapeHtml(cliente.dni || '')}</code>
                     </td>
                     <td>
-                        ${cliente.tlf ? `<a href="tel:${cliente.tlf}" class="text-decoration-none">${cliente.tlf}</a>` : ''}
+                        ${cliente.tlf ? `<a href="tel:${cliente.tlf}" class="text-decoration-none" onclick="event.stopPropagation();">${cliente.tlf}</a>` : ''}
                     </td>
                     <td>
                         <span class="text-truncate d-block" style="max-width: 200px;" title="${this.escapeHtml(cliente.observaciones || '')}">
                             ${this.escapeHtml(cliente.observaciones || '')}
                         </span>
                     </td>
-                    <td class="text-center">
+                    <td class="text-center" onclick="event.stopPropagation();">
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-primary btn-action" 
                                     onclick="showIncidencias(${cliente.id}, '${this.escapeHtml(cliente.nombre)}')"
