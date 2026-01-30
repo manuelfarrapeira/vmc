@@ -12,6 +12,7 @@ class VMCApp {
         this.currentClienteId = null;
         this.currentCliente = null;
         this.currentIncidencias = []; // Almacenar incidencias cargadas
+        this.allClientes = []; // Almacenar todos los clientes para búsqueda
 
         // Estado de paginación
         this.pagination = {
@@ -324,11 +325,18 @@ class VMCApp {
                                 <input type="hidden" id="incidencia-clientes-id">
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        <label for="incidencia-clientes-select" class="form-label fw-semibold">Cliente <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="incidencia-clientes-select" name="idcliente" required>
-                                            <option value="">Seleccionar cliente...</option>
-                                        </select>
-                                        <div class="form-text">Escribe para buscar por nombre o razón social</div>
+                                        <label for="incidencia-clientes-input" class="form-label fw-semibold">Cliente <span class="text-danger">*</span></label>
+                                        <input type="hidden" id="incidencia-clientes-id" name="idcliente" required>
+                                        <div class="position-relative">
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="incidencia-clientes-input" 
+                                                   placeholder="Escribe para buscar cliente por nombre o razón social..."
+                                                   autocomplete="off"
+                                                   required>
+                                            <div id="clientes-dropdown" class="dropdown-menu w-100" style="max-height: 300px; overflow-y: auto;">
+                                            </div>
+                                        </div>
                                         <div class="invalid-feedback">Debes seleccionar un cliente.</div>
                                     </div>
                                     <div class="col-md-6">
@@ -1833,31 +1841,19 @@ class VMCApp {
     }
 
     /**
-     * Load all clientes into select dropdown
+     * Load all clientes into dropdown
      */
     async loadClientesIntoSelect() {
-        const select = document.getElementById('incidencia-clientes-select');
-
         try {
             // Get all clientes without pagination
             const response = await this.apiCall('clientes/index.php?limit=1000&orderBy=nombre&orderDir=ASC', 'GET');
 
             if (response && response.data) {
-                // Clear existing options except the first one
-                select.innerHTML = '<option value="">Seleccionar cliente...</option>';
-
-                // Add clientes to select
-                response.data.forEach(cliente => {
-                    const option = document.createElement('option');
-                    option.value = cliente.id;
-                    option.textContent = `${cliente.nombre}${cliente.razon_social ? ' - ' + cliente.razon_social : ''}`;
-                    option.dataset.nombre = cliente.nombre.toLowerCase();
-                    option.dataset.razonSocial = (cliente.razon_social || '').toLowerCase();
-                    select.appendChild(option);
-                });
+                // Store clientes data for searching
+                this.allClientes = response.data;
 
                 // Setup search functionality
-                this.setupClienteSelectSearch();
+                this.setupClienteDropdownSearch();
             }
         } catch (error) {
             console.error('Error loading clientes:', error);
@@ -1866,93 +1862,100 @@ class VMCApp {
     }
 
     /**
-     * Setup search functionality for cliente select
+     * Setup search functionality for cliente dropdown
      */
-    setupClienteSelectSearch() {
-        const select = document.getElementById('incidencia-clientes-select');
-        const selectParent = select.parentElement;
+    setupClienteDropdownSearch() {
+        const input = document.getElementById('incidencia-clientes-input');
+        const dropdown = document.getElementById('clientes-dropdown');
+        const hiddenInput = document.getElementById('incidencia-clientes-id');
 
-        // Remove existing search input if any
-        let existingInput = document.getElementById('cliente-search-input');
-        if (existingInput) {
-            existingInput.remove();
-        }
+        if (!input || !dropdown || !hiddenInput) return;
 
-        // Create a new search input
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.id = 'cliente-search-input';
-        searchInput.className = 'form-control mb-0';
-        searchInput.placeholder = 'Buscar cliente por nombre o razón social...';
-        selectParent.insertBefore(searchInput, select);
-
-        // Add size to select to show multiple options
-        select.size = 10;
-
-        // Search functionality
-        searchInput.addEventListener('input', (e) => {
+        // Search and display results
+        input.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase().trim();
-            const options = select.querySelectorAll('option');
-            let visibleCount = 0;
 
-            options.forEach((option, index) => {
-                if (index === 0) {
-                    // Always hide the first "Seleccionar cliente..." option
-                    option.style.display = 'none';
-                    return;
-                }
+            // Clear hidden input when user types
+            hiddenInput.value = '';
+            input.classList.remove('is-invalid');
 
-                const nombre = option.dataset.nombre || '';
-                const razonSocial = option.dataset.razonSocial || '';
+            if (searchTerm === '') {
+                dropdown.classList.remove('show');
+                return;
+            }
 
-                if (searchTerm === '' || nombre.includes(searchTerm) || razonSocial.includes(searchTerm)) {
-                    option.style.display = '';
-                    visibleCount++;
-                } else {
-                    option.style.display = 'none';
-                }
-            });
+            // Filter clientes
+            const matches = this.allClientes.filter(cliente => {
+                const nombre = (cliente.nombre || '').toLowerCase();
+                const razonSocial = (cliente.razon_social || '').toLowerCase();
+                const dni = (cliente.dni || '').toLowerCase();
 
-            // Show message if no results
-            if (visibleCount === 0 && searchTerm !== '') {
-                if (!document.getElementById('no-clientes-message')) {
-                    const noResultsOption = document.createElement('option');
-                    noResultsOption.id = 'no-clientes-message';
-                    noResultsOption.disabled = true;
-                    noResultsOption.textContent = 'No se encontraron clientes';
-                    select.appendChild(noResultsOption);
-                }
+                return nombre.includes(searchTerm) ||
+                       razonSocial.includes(searchTerm) ||
+                       dni.includes(searchTerm);
+            }).slice(0, 10);
+
+            if (matches.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-item text-muted disabled">No se encontraron clientes</div>';
+                dropdown.classList.add('show');
             } else {
-                const noResultsOption = document.getElementById('no-clientes-message');
-                if (noResultsOption) {
-                    noResultsOption.remove();
-                }
+                dropdown.innerHTML = matches.map(cliente => `
+                    <button type="button" class="dropdown-item" data-id="${cliente.id}">
+                        <div class="fw-semibold">${this.escapeHtml(cliente.nombre)}</div>
+                        ${cliente.razon_social ? `<small class="text-muted">${this.escapeHtml(cliente.razon_social)}</small>` : ''}
+                        ${cliente.dni ? `<small class="text-muted d-block">DNI/CIF: ${this.escapeHtml(cliente.dni)}</small>` : ''}
+                    </button>
+                `).join('');
+                dropdown.classList.add('show');
+
+                // Add click handlers to dropdown items
+                dropdown.querySelectorAll('button.dropdown-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const clienteId = item.dataset.id;
+                        const cliente = this.allClientes.find(c => c.id == clienteId);
+
+                        if (cliente) {
+                            // Set values
+                            hiddenInput.value = cliente.id;
+                            input.value = `${cliente.nombre}${cliente.razon_social ? ' - ' + cliente.razon_social : ''}`;
+                            input.classList.remove('is-invalid');
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                });
             }
         });
 
-        // Clear search and reset select when modal closes
-        const modal = document.getElementById('incidenciaClientesModal');
-        const cleanupHandler = () => {
-            const input = document.getElementById('cliente-search-input');
-            if (input) {
-                input.value = '';
+        // Handle keyboard navigation
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                dropdown.classList.remove('show');
             }
-            const opts = select.querySelectorAll('option');
-            opts.forEach((opt, idx) => {
-                if (idx === 0) {
-                    opt.style.display = '';
-                } else {
-                    opt.style.display = '';
-                }
-            });
-            const noResultsOpt = document.getElementById('no-clientes-message');
-            if (noResultsOpt) {
-                noResultsOpt.remove();
-            }
-            select.size = 0; // Reset to normal dropdown
-        };
+        });
 
-        modal.addEventListener('hidden.bs.modal', cleanupHandler, { once: true });
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Show dropdown on focus if there's text
+        input.addEventListener('focus', () => {
+            if (input.value.trim() !== '' && dropdown.innerHTML !== '') {
+                dropdown.classList.add('show');
+            }
+        });
+
+        // Clear on modal close
+        const modal = document.getElementById('incidenciaClientesModal');
+        modal.addEventListener('hidden.bs.modal', () => {
+            input.value = '';
+            hiddenInput.value = '';
+            input.classList.remove('is-invalid');
+            dropdown.classList.remove('show');
+            dropdown.innerHTML = '';
+        }, { once: false });
     }
 
     /**
@@ -1969,11 +1972,15 @@ class VMCApp {
         }
 
         // Validate that a cliente is selected
-        const clienteId = document.getElementById('incidencia-clientes-select').value;
+        const clienteId = document.getElementById('incidencia-clientes-id').value;
         if (!clienteId) {
-            this.showToast('Debes seleccionar un cliente', 'error');
+            this.showToast('Debes seleccionar un cliente de la lista', 'error');
+            document.getElementById('incidencia-clientes-input').classList.add('is-invalid');
             return;
         }
+
+        // Remove invalid class if valid
+        document.getElementById('incidencia-clientes-input').classList.remove('is-invalid');
 
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
