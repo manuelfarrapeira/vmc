@@ -211,6 +211,23 @@ class VMCApp {
                                         <textarea class="form-control" id="cliente-observaciones" name="observaciones" rows="3" maxlength="200"></textarea>
                                         <div class="form-text">Máximo 200 caracteres</div>
                                     </div>
+                                    <div class="col-12">
+                                        <label for="cliente-documento" class="form-label fw-semibold">Documento</label>
+                                        <input type="file" class="form-control" id="cliente-documento" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip">
+                                        <div class="form-text">Máximo 2MB. PDF, Word, Excel, imágenes, TXT o ZIP</div>
+                                    </div>
+                                    <div class="col-12" id="cliente-documento-actual-container" style="display: none;">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="bi bi-file-earmark-text me-2"></i>
+                                            <span id="cliente-documento-actual-nombre">Documento actual</span>
+                                            <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="downloadDocumentoCliente()" title="Descargar">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger ms-1" onclick="deleteDocumentoCliente()" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -1193,7 +1210,7 @@ class VMCApp {
         if (!data.data || data.data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-4">
+                    <td colspan="7" class="text-center py-4">
                         <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
                         <p class="text-muted mb-0 mt-2">No se encontraron clientes</p>
                         <button class="btn btn-outline-primary btn-sm mt-2" onclick="clearClientesFilters()">
@@ -1219,6 +1236,28 @@ class VMCApp {
                         <span class="text-truncate d-block" style="max-width: 200px;" title="${this.escapeHtml(cliente.observaciones || '')}">
                             ${this.escapeHtml(cliente.observaciones || '')}
                         </span>
+                    </td>
+                    <td class="text-center" onclick="event.stopPropagation();">
+                        ${cliente.documentacion ? `
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-action"
+                                    onclick="downloadDocumentoClienteFromList(${cliente.id})"
+                                    title="Descargar documento">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-action"
+                                    onclick="deleteDocumentoClienteFromList(${cliente.id})"
+                                    title="Eliminar documento">
+                                <i class="bi bi-file-earmark-x"></i>
+                            </button>
+                        </div>
+                        ` : `
+                        <button type="button" class="btn btn-outline-success btn-sm btn-action"
+                                onclick="uploadDocumentoClienteFromList(${cliente.id})"
+                                title="Subir documento">
+                            <i class="bi bi-upload"></i>
+                        </button>
+                        `}
                     </td>
                     <td class="text-center" onclick="event.stopPropagation();">
                         <div class="btn-group btn-group-sm" role="group">
@@ -1256,7 +1295,7 @@ class VMCApp {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-4 text-danger">
+                    <td colspan="7" class="text-center py-4 text-danger">
                         <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
                         <p class="mb-0 mt-2">Error al cargar clientes</p>
                         <small class="text-muted">${error}</small>
@@ -1399,6 +1438,11 @@ class VMCApp {
         form.reset();
         form.classList.remove('was-validated');
 
+        // Hide documento actual container by default
+        const docContainer = document.getElementById('cliente-documento-actual-container');
+        const docNombre = document.getElementById('cliente-documento-actual-nombre');
+        docContainer.style.display = 'none';
+
         if (cliente) {
             // Edit mode
             document.getElementById('cliente-modal-title').textContent = 'Editar Cliente';
@@ -1409,6 +1453,12 @@ class VMCApp {
             document.getElementById('cliente-dni-cif').value = cliente.dni || '';
             document.getElementById('cliente-telefono').value = cliente.tlf || '';
             document.getElementById('cliente-observaciones').value = cliente.observaciones || '';
+
+            // Show documento actual if exists
+            if (cliente.documentacion) {
+                docContainer.style.display = 'block';
+                docNombre.textContent = cliente.documentacion;
+            }
         } else {
             // Create mode
             document.getElementById('cliente-modal-title').textContent = 'Nuevo Cliente';
@@ -1465,6 +1515,8 @@ class VMCApp {
                 }
             }
 
+            let savedClienteId = clienteId;
+
             if (clienteId) {
                 // Update
                 data.id = clienteId;
@@ -1472,8 +1524,16 @@ class VMCApp {
                 this.showToast('Cliente actualizado exitosamente', 'success');
             } else {
                 // Create
-                await this.apiCall('clientes/index.php', 'POST', data);
+                const response = await this.apiCall('clientes/index.php', 'POST', data);
+                // Get the created cliente ID from response
+                savedClienteId = response.id || savedClienteId;
                 this.showToast('Cliente creado exitosamente', 'success');
+            }
+
+            // Handle file upload if a file was selected
+            const fileInput = document.getElementById('cliente-documento');
+            if (fileInput.files.length > 0 && savedClienteId) {
+                await this.uploadDocumentoCliente(savedClienteId, fileInput.files[0]);
             }
 
             bootstrap.Modal.getInstance(document.getElementById('clienteModal')).hide();
@@ -2153,6 +2213,220 @@ class VMCApp {
     }
 
     /**
+     * Download documento cliente from list
+     */
+    async downloadDocumentoClienteFromList(clienteId) {
+        if (!clienteId) return;
+
+        try {
+            const url = `${this.apiUrl}/clientes/download.php?cliente_id=${clienteId}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + this.token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al descargar el archivo');
+            }
+
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'documento';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            this.showToast('Documento descargado exitosamente', 'success');
+        } catch (error) {
+            console.error('Error downloading documento cliente:', error);
+            this.showToast('Error al descargar documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Upload documento cliente from list
+     */
+    uploadDocumentoClienteFromList(clienteId) {
+        if (!clienteId) return;
+
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip';
+        fileInput.style.display = 'none';
+
+        fileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                this.showToast('El archivo es demasiado grande. Máximo 2MB', 'error');
+                return;
+            }
+
+            try {
+                await this.uploadDocumentoCliente(clienteId, file);
+                this.loadClientes();
+            } catch (error) {
+                console.error('Error uploading documento cliente:', error);
+            } finally {
+                document.body.removeChild(fileInput);
+            }
+        };
+
+        document.body.appendChild(fileInput);
+        fileInput.click();
+    }
+
+    /**
+     * Upload documento to cliente
+     */
+    async uploadDocumentoCliente(clienteId, file) {
+        try {
+            const maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                this.showToast('El archivo es demasiado grande. Máximo 2MB', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('cliente_id', clienteId);
+            formData.append('documento', file);
+
+            const response = await fetch(this.apiUrl + '/clientes/upload.php', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + this.token
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Error al subir el archivo');
+            }
+
+            this.showToast('Documento subido exitosamente', 'success');
+        } catch (error) {
+            console.error('Error uploading documento cliente:', error);
+            this.showToast('Error al subir documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Delete documento cliente from list
+     */
+    async deleteDocumentoClienteFromList(clienteId) {
+        if (!clienteId) return;
+
+        if (!confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+            return;
+        }
+
+        try {
+            await this.apiCall('clientes/upload.php', 'DELETE', {
+                cliente_id: parseInt(clienteId)
+            });
+
+            this.showToast('Documento eliminado exitosamente', 'success');
+            this.loadClientes();
+        } catch (error) {
+            console.error('Error deleting documento cliente:', error);
+            this.showToast('Error al eliminar documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Download documento cliente from modal
+     */
+    async downloadDocumentoCliente() {
+        const clienteId = document.getElementById('cliente-id').value;
+        if (!clienteId) return;
+
+        try {
+            const url = `${this.apiUrl}/clientes/download.php?cliente_id=${clienteId}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + this.token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al descargar el archivo');
+            }
+
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'documento';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error('Error downloading documento cliente:', error);
+            this.showToast('Error al descargar documento: ' + error, 'error');
+        }
+    }
+
+    /**
+     * Delete documento cliente from modal
+     */
+    async deleteDocumentoCliente() {
+        const clienteId = document.getElementById('cliente-id').value;
+        if (!clienteId) return;
+
+        if (!confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+            return;
+        }
+
+        try {
+            await this.apiCall('clientes/upload.php', 'DELETE', {
+                cliente_id: parseInt(clienteId)
+            });
+
+            this.showToast('Documento eliminado exitosamente', 'success');
+
+            // Hide documento container
+            document.getElementById('cliente-documento-actual-container').style.display = 'none';
+
+            // Reload clientes
+            this.loadClientes();
+        } catch (error) {
+            console.error('Error deleting documento cliente:', error);
+            this.showToast('Error al eliminar documento: ' + error, 'error');
+        }
+    }
+
+    /**
      * Open incidencia modal from clientes list
      */
     async openIncidenciaFromClientesModal() {
@@ -2569,6 +2843,26 @@ function uploadDocumentoFromList(incidenciaId) {
 
 function deleteDocumentoFromList(incidenciaId) {
     vmcApp?.deleteDocumentoFromList(incidenciaId);
+}
+
+function downloadDocumentoClienteFromList(clienteId) {
+    vmcApp?.downloadDocumentoClienteFromList(clienteId);
+}
+
+function uploadDocumentoClienteFromList(clienteId) {
+    vmcApp?.uploadDocumentoClienteFromList(clienteId);
+}
+
+function deleteDocumentoClienteFromList(clienteId) {
+    vmcApp?.deleteDocumentoClienteFromList(clienteId);
+}
+
+function downloadDocumentoCliente() {
+    vmcApp?.downloadDocumentoCliente();
+}
+
+function deleteDocumentoCliente() {
+    vmcApp?.deleteDocumentoCliente();
 }
 
 function editIncidencia(incidenciaId) {

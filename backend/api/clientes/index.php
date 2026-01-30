@@ -90,9 +90,13 @@ switch ($method) {
                 }
             }
 
-            if ($cliente->create()) {
+            $createdId = $cliente->create();
+            if ($createdId) {
                 http_response_code(201);
-                echo json_encode(array("message" => "Cliente creado exitosamente"));
+                echo json_encode(array(
+                    "message" => "Cliente creado exitosamente",
+                    "id" => $createdId
+                ));
             } else {
                 http_response_code(503);
                 echo json_encode(array("message" => "No se pudo crear el cliente"));
