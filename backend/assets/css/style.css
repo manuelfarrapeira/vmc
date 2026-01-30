@@ -360,3 +360,46 @@ body {
 .card-body .text-muted i.bi-info-circle {
     color: #0d6efd;
 }
+
+/* Cliente selector with search */
+#cliente-search-input {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+}
+
+#incidencia-clientes-select {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    font-size: 0.95rem;
+}
+
+#incidencia-clientes-select[size] {
+    height: auto !important;
+    padding: 0;
+}
+
+#incidencia-clientes-select option {
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+#incidencia-clientes-select option:hover {
+    background-color: #e9ecef;
+}
+
+#incidencia-clientes-select option:checked {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Hide options in select with display none */
+#incidencia-clientes-select option[style*="display: none"] {
+    display: none !important;
+}
+
+/* Button toolbar gap */
+.btn-toolbar.gap-2 {
+    gap: 0.5rem;
+}
+

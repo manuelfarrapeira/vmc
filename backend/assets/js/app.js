@@ -308,6 +308,72 @@ class VMCApp {
                     </div>
                 </div>
             </div>
+
+            <!-- Incidencia desde Clientes Modal -->
+            <div class="modal fade" id="incidenciaClientesModal" tabindex="-1" aria-labelledby="incidenciaClientesModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="incidenciaClientesModalLabel">
+                                <i class="bi bi-clipboard-plus me-2"></i>Nueva Incidencia
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="incidencia-clientes-form" novalidate>
+                            <div class="modal-body">
+                                <input type="hidden" id="incidencia-clientes-id">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="incidencia-clientes-select" class="form-label fw-semibold">Cliente <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="incidencia-clientes-select" name="idcliente" required>
+                                            <option value="">Seleccionar cliente...</option>
+                                        </select>
+                                        <div class="form-text">Escribe para buscar por nombre o razón social</div>
+                                        <div class="invalid-feedback">Debes seleccionar un cliente.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="incidencia-clientes-fecha" class="form-label fw-semibold">Fecha <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="incidencia-clientes-fecha" name="fecha" placeholder="DD/MM/YYYY" pattern="\\d{2}/\\d{2}/\\d{4}" required>
+                                        <div class="form-text">Formato: DD/MM/YYYY</div>
+                                        <div class="invalid-feedback">La fecha es obligatoria (formato DD/MM/YYYY).</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="incidencia-clientes-realizado" class="form-label fw-semibold">Realizado</label>
+                                        <select class="form-select" id="incidencia-clientes-realizado" name="realizado">
+                                            <option value="0">No</option>
+                                            <option value="1">Sí</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="incidencia-clientes-descripcion" class="form-label fw-semibold">Descripción de la Incidencia <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="incidencia-clientes-descripcion" name="incidencia" rows="4" required></textarea>
+                                        <div class="invalid-feedback">La descripción de la incidencia es obligatoria.</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="incidencia-clientes-respuesta" class="form-label fw-semibold">Respuesta</label>
+                                        <textarea class="form-control" id="incidencia-clientes-respuesta" name="respuesta" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="incidencia-clientes-cobrado" class="form-label fw-semibold">Cobrado</label>
+                                        <select class="form-select" id="incidencia-clientes-cobrado" name="cobrado">
+                                            <option value="0">No</option>
+                                            <option value="1">Sí</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-lg me-1"></i>Crear Incidencia
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         `;
     }
 
@@ -1742,6 +1808,207 @@ class VMCApp {
     }
 
     /**
+     * Open incidencia modal from clientes list
+     */
+    async openIncidenciaFromClientesModal() {
+        const modal = new bootstrap.Modal(document.getElementById('incidenciaClientesModal'));
+        const form = document.getElementById('incidencia-clientes-form');
+
+        // Reset form
+        form.reset();
+        form.classList.remove('was-validated');
+
+        // Set default values
+        document.getElementById('incidencia-clientes-fecha').value = this.getCurrentDate();
+        document.getElementById('incidencia-clientes-realizado').value = '0';
+        document.getElementById('incidencia-clientes-cobrado').value = '0';
+
+        // Load clientes into select
+        await this.loadClientesIntoSelect();
+
+        // Setup form submission
+        form.onsubmit = (e) => this.handleIncidenciaClientesSubmit(e);
+
+        modal.show();
+    }
+
+    /**
+     * Load all clientes into select dropdown
+     */
+    async loadClientesIntoSelect() {
+        const select = document.getElementById('incidencia-clientes-select');
+
+        try {
+            // Get all clientes without pagination
+            const response = await this.apiCall('clientes/index.php?limit=1000&orderBy=nombre&orderDir=ASC', 'GET');
+
+            if (response && response.data) {
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Seleccionar cliente...</option>';
+
+                // Add clientes to select
+                response.data.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.id;
+                    option.textContent = `${cliente.nombre}${cliente.razon_social ? ' - ' + cliente.razon_social : ''}`;
+                    option.dataset.nombre = cliente.nombre.toLowerCase();
+                    option.dataset.razonSocial = (cliente.razon_social || '').toLowerCase();
+                    select.appendChild(option);
+                });
+
+                // Setup search functionality
+                this.setupClienteSelectSearch();
+            }
+        } catch (error) {
+            console.error('Error loading clientes:', error);
+            this.showToast('Error al cargar clientes', 'error');
+        }
+    }
+
+    /**
+     * Setup search functionality for cliente select
+     */
+    setupClienteSelectSearch() {
+        const select = document.getElementById('incidencia-clientes-select');
+        const selectParent = select.parentElement;
+
+        // Remove existing search input if any
+        let existingInput = document.getElementById('cliente-search-input');
+        if (existingInput) {
+            existingInput.remove();
+        }
+
+        // Create a new search input
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.id = 'cliente-search-input';
+        searchInput.className = 'form-control mb-0';
+        searchInput.placeholder = 'Buscar cliente por nombre o razón social...';
+        selectParent.insertBefore(searchInput, select);
+
+        // Add size to select to show multiple options
+        select.size = 10;
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const options = select.querySelectorAll('option');
+            let visibleCount = 0;
+
+            options.forEach((option, index) => {
+                if (index === 0) {
+                    // Always hide the first "Seleccionar cliente..." option
+                    option.style.display = 'none';
+                    return;
+                }
+
+                const nombre = option.dataset.nombre || '';
+                const razonSocial = option.dataset.razonSocial || '';
+
+                if (searchTerm === '' || nombre.includes(searchTerm) || razonSocial.includes(searchTerm)) {
+                    option.style.display = '';
+                    visibleCount++;
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+
+            // Show message if no results
+            if (visibleCount === 0 && searchTerm !== '') {
+                if (!document.getElementById('no-clientes-message')) {
+                    const noResultsOption = document.createElement('option');
+                    noResultsOption.id = 'no-clientes-message';
+                    noResultsOption.disabled = true;
+                    noResultsOption.textContent = 'No se encontraron clientes';
+                    select.appendChild(noResultsOption);
+                }
+            } else {
+                const noResultsOption = document.getElementById('no-clientes-message');
+                if (noResultsOption) {
+                    noResultsOption.remove();
+                }
+            }
+        });
+
+        // Clear search and reset select when modal closes
+        const modal = document.getElementById('incidenciaClientesModal');
+        const cleanupHandler = () => {
+            const input = document.getElementById('cliente-search-input');
+            if (input) {
+                input.value = '';
+            }
+            const opts = select.querySelectorAll('option');
+            opts.forEach((opt, idx) => {
+                if (idx === 0) {
+                    opt.style.display = '';
+                } else {
+                    opt.style.display = '';
+                }
+            });
+            const noResultsOpt = document.getElementById('no-clientes-message');
+            if (noResultsOpt) {
+                noResultsOpt.remove();
+            }
+            select.size = 0; // Reset to normal dropdown
+        };
+
+        modal.addEventListener('hidden.bs.modal', cleanupHandler, { once: true });
+    }
+
+    /**
+     * Handle incidencia from clientes form submission
+     */
+    async handleIncidenciaClientesSubmit(e) {
+        e.preventDefault();
+
+        const form = e.target;
+
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        // Validate that a cliente is selected
+        const clienteId = document.getElementById('incidencia-clientes-select').value;
+        if (!clienteId) {
+            this.showToast('Debes seleccionar un cliente', 'error');
+            return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+
+        try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-1" role="status"></div>Guardando...';
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            // Ensure client ID is set
+            data.idcliente = clienteId;
+
+            // Create incidencia
+            await this.apiCall('incidencias/index.php', 'POST', data);
+            this.showToast('Incidencia creada exitosamente', 'success');
+
+            bootstrap.Modal.getInstance(document.getElementById('incidenciaClientesModal')).hide();
+
+            // Reload clientes list if we're on clientes section
+            if (document.getElementById('clientes-section').classList.contains('fade-in')) {
+                this.loadClientes();
+            }
+
+        } catch (error) {
+            console.error('Error saving incidencia:', error);
+            this.showToast('Error al guardar incidencia: ' + error, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    }
+
+    /**
      * Show confirmation dialog
      */
     showConfirmDialog(message, onConfirm) {
@@ -1934,6 +2201,10 @@ function openClienteModal(cliente = null) {
 
 function openIncidenciaModal(incidencia = null) {
     vmcApp?.openIncidenciaModal(incidencia);
+}
+
+function openIncidenciaFromClientesModal() {
+    vmcApp?.openIncidenciaFromClientesModal();
 }
 
 function editIncidencia(incidenciaId) {

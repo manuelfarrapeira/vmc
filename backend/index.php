@@ -237,7 +237,10 @@
                                 <h1 class="h2 fw-bold">
                                     <i class="bi bi-people me-2 text-primary"></i>Gestión de Clientes
                                 </h1>
-                                <div class="btn-toolbar mb-2 mb-md-0">
+                                <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+                                    <button class="btn btn-success" onclick="openIncidenciaFromClientesModal()">
+                                        <i class="bi bi-clipboard-plus me-2"></i>Nueva Incidencia
+                                    </button>
                                     <button class="btn btn-primary" onclick="openClienteModal()">
                                         <i class="bi bi-plus-lg me-2"></i>Nuevo Cliente
                                     </button>
