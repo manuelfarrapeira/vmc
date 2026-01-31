@@ -477,6 +477,11 @@ class VMCApp {
                                             <option value="1">Sí</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="incidencia-clientes-documento" class="form-label fw-semibold">Documento</label>
+                                        <input type="file" class="form-control" id="incidencia-clientes-documento" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.zip">
+                                        <div class="form-text">Máximo 2MB. PDF, Word, Excel, imágenes, TXT o ZIP</div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -3058,7 +3063,15 @@ class VMCApp {
             data.idcliente = clienteId;
 
             // Create incidencia
-            await this.apiCall('incidencias/index.php', 'POST', data);
+            const response = await this.apiCall('incidencias/index.php', 'POST', data);
+            const savedIncidenciaId = response.id;
+
+            // Handle file upload if a file was selected
+            const fileInput = document.getElementById('incidencia-clientes-documento');
+            if (fileInput.files.length > 0 && savedIncidenciaId) {
+                await this.uploadDocumento(savedIncidenciaId, fileInput.files[0]);
+            }
+
             this.showToast('Incidencia creada exitosamente', 'success');
 
             bootstrap.Modal.getInstance(document.getElementById('incidenciaClientesModal')).hide();
