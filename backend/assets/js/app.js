@@ -1297,10 +1297,12 @@ class VMCApp {
         } else {
             const rows = data.data.map(cliente => `
                 <tr style="cursor: pointer;" onclick="showIncidencias(${cliente.id}, '${this.escapeHtml(cliente.nombre)}')">
-                    <td>
-                        <div class="fw-semibold">${this.escapeHtml(cliente.nombre)}</div>
+                    <td style="white-space: nowrap !important;">
+                        <span class="fw-semibold" style="white-space: nowrap !important; display: inline !important;">${this.escapeHtml(cliente.nombre)}</span>
                     </td>
-                    <td>${this.escapeHtml(cliente.razon_social || '')}</td>
+                    <td style="white-space: nowrap !important;">
+                        <span style="white-space: nowrap !important; display: inline !important;">${this.escapeHtml(cliente.razon_social || '')}</span>
+                    </td>
                     <td>
                         <code class="text-muted">${this.escapeHtml(cliente.dni || '')}</code>
                     </td>
@@ -2905,8 +2907,8 @@ class VMCApp {
      */
     async loadClientesIntoSelect() {
         try {
-            // Get all clientes without pagination
-            const response = await this.apiCall('clientes/index.php?limit=1000&orderBy=nombre&orderDir=ASC', 'GET');
+            // Get all clientes without pagination limit
+            const response = await this.apiCall('clientes/index.php?limit=999999&orderBy=nombre&orderDir=ASC', 'GET');
 
             if (response && response.data) {
                 // Store clientes data for searching

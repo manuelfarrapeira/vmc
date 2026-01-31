@@ -287,36 +287,28 @@
                             <!-- Clientes Table -->
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <small class="text-muted">
-                                            <i class="bi bi-info-circle me-1"></i>Haz clic en cualquier fila para ver las incidencias del cliente
-                                        </small>
-                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-hover align-middle">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th class="fw-semibold sortable-header" data-sort="nombre" style="cursor: pointer; user-select: none;">
-                                                        <i class="bi bi-person me-1"></i>Nombre
-                                                        <i class="bi bi-chevron-expand sort-icon" id="sort-icon-nombre"></i>
+                                                    <th class="fw-semibold sortable-header" data-sort="nombre" style="cursor: pointer; user-select: none; white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-person me-1"></i>Nombre <i class="bi bi-chevron-expand sort-icon" id="sort-icon-nombre"></i></span>
                                                     </th>
-                                                    <th class="fw-semibold sortable-header" data-sort="razon_social" style="cursor: pointer; user-select: none;">
-                                                        <i class="bi bi-building me-1"></i>Razón Social
-                                                        <i class="bi bi-chevron-expand sort-icon" id="sort-icon-razon_social"></i>
+                                                    <th class="fw-semibold sortable-header" data-sort="razon_social" style="cursor: pointer; user-select: none; white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-building me-1"></i>Razón Social <i class="bi bi-chevron-expand sort-icon" id="sort-icon-razon_social"></i></span>
                                                     </th>
-                                                    <th class="fw-semibold sortable-header" data-sort="dni" style="cursor: pointer; user-select: none;">
-                                                        DNI/CIF
-                                                        <i class="bi bi-chevron-expand sort-icon" id="sort-icon-dni"></i>
+                                                    <th class="fw-semibold sortable-header" data-sort="dni" style="cursor: pointer; user-select: none; white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;">DNI/CIF <i class="bi bi-chevron-expand sort-icon" id="sort-icon-dni"></i></span>
                                                     </th>
-                                                    <th class="fw-semibold">
-                                                        <i class="bi bi-telephone me-1"></i>Teléfono
+                                                    <th class="fw-semibold" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-telephone me-1"></i>Teléfono</span>
                                                     </th>
-                                                    <th class="fw-semibold">
-                                                        <i class="bi bi-envelope me-1"></i>Email
+                                                    <th class="fw-semibold" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-envelope me-1"></i>Email</span>
                                                     </th>
-                                                    <th class="fw-semibold">Observaciones</th>
-                                                    <th class="fw-semibold text-center">Documento</th>
-                                                    <th class="fw-semibold text-center" width="180">Acciones</th>
+                                                    <th class="fw-semibold" style="white-space: nowrap;">Observaciones</th>
+                                                    <th class="fw-semibold text-center" style="white-space: nowrap;">Documento</th>
+                                                    <th class="fw-semibold text-center" width="180" style="white-space: nowrap;">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="clientes-table">
@@ -419,15 +411,15 @@
                                         <table class="table table-hover align-middle">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th class="fw-semibold" width="10%">
-                                                        <i class="bi bi-calendar me-1"></i>Fecha
+                                                    <th class="fw-semibold" width="10%" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-calendar me-1"></i>Fecha</span>
                                                     </th>
-                                                    <th class="fw-semibold" width="30%">Incidencia</th>
-                                                    <th class="fw-semibold" width="30%">Respuesta</th>
-                                                    <th class="fw-semibold text-center" width="10%">Realizado</th>
-                                                    <th class="fw-semibold text-center" width="10%">Cobrado</th>
-                                                    <th class="fw-semibold text-center" width="10%">Documento</th>
-                                                    <th class="fw-semibold text-center" width="10%">Acciones</th>
+                                                    <th class="fw-semibold" width="30%" style="white-space: nowrap;">Incidencia</th>
+                                                    <th class="fw-semibold" width="30%" style="white-space: nowrap;">Respuesta</th>
+                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Realizado</th>
+                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Cobrado</th>
+                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Documento</th>
+                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="incidencias-table">

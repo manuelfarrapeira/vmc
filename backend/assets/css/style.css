@@ -125,9 +125,73 @@ body {
     border-radius: 0.375rem;
 }
 
+/* Estilos globales para nombres de clientes - evitar saltos de línea */
+#clientes-table tbody tr td:first-child,
+#clientes-table tbody tr td:first-child *,
+#clientes-table tbody tr td:first-child div,
+#clientes-table tbody tr td:first-child span,
+#clientes-table tbody tr td:first-child .fw-semibold {
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    word-break: keep-all !important;
+    overflow: visible !important;
+    display: inline !important;
+}
+
+#clientes-table tbody tr td:first-child {
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+}
+
+/* Estilos globales para razón social - evitar saltos de línea */
+#clientes-table tbody tr td:nth-child(2),
+#clientes-table tbody tr td:nth-child(2) *,
+#clientes-table tbody tr td:nth-child(2) span {
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    word-break: keep-all !important;
+    overflow: visible !important;
+    display: inline !important;
+}
+
+#clientes-table tbody tr td:nth-child(2) {
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+}
+
+/* Evitar saltos de línea en los TH de las tablas */
+.table thead th {
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    padding: 0.75rem 0.5rem !important;
+}
+
+.table thead th * {
+    white-space: nowrap !important;
+}
+
+.table thead th span {
+    display: inline-block !important;
+    white-space: nowrap !important;
+}
+
+.table thead th i {
+    display: inline !important;
+    white-space: nowrap !important;
+}
+
+.table thead th .sort-icon {
+    display: inline !important;
+    margin-left: 0.25rem;
+}
+
 @media (max-width: 768px) {
     .table-responsive {
         font-size: 0.875rem;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 
     .btn-action {
@@ -143,12 +207,10 @@ body {
         padding: 1rem 0;
     }
 
-    /* Evitar saltos de línea en nombres de clientes en tablets */
-    #clientes-table td:first-child,
-    #clientes-table td:first-child .fw-semibold {
-        white-space: nowrap !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
+
+    /* Forzar tabla auto-layout en tablets */
+    #clientes-table {
+        table-layout: auto !important;
     }
 }
 
@@ -313,19 +375,15 @@ body {
         margin: 0.5rem;
     }
 
-    /* Evitar saltos de línea en nombres de clientes en móvil */
-    #clientes-table td:first-child,
-    #clientes-table td:first-child .fw-semibold {
-        white-space: nowrap !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
-        min-width: auto !important;
-        max-width: none !important;
-    }
 
-    /* Permitir que la tabla se expanda horizontalmente si es necesario */
+    /* Forzar tabla auto-layout y scroll en móviles */
     #clientes-table {
         table-layout: auto !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 }
 

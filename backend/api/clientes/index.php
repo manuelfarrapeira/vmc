@@ -32,11 +32,11 @@ switch ($method) {
             $orderDir = isset($_GET['orderDir']) ? $_GET['orderDir'] : 'ASC';
             $estadoIncidencias = isset($_GET['estadoIncidencias']) ? $_GET['estadoIncidencias'] : '';
 
-            // Validar limit
             $allowedLimits = [20, 30, 50];
-            if (!in_array($limit, $allowedLimits)) {
+            if (!in_array($limit, $allowedLimits) && $limit < 10000) {
                 $limit = 20;
             }
+            // Si el límite es muy grande (>= 10000), permitirlo sin validación adicional
 
             // Validar estadoIncidencias
             $allowedEstados = ['', 'sin_cobrar', 'sin_realizar'];
