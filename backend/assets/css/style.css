@@ -649,3 +649,13 @@ body {
     overflow-y: auto;
 }
 
+/* Efecto hover en columnas clickeables (nombre y razón social) */
+#clientes-table tbody tr td:first-child:hover,
+#clientes-table tbody tr td:nth-child(2):hover {
+    background-color: rgba(13, 110, 253, 0.08) !important;
+}
+
+#clientes-table tbody tr td:first-child,
+#clientes-table tbody tr td:nth-child(2) {
+    transition: background-color 0.15s ease-in-out;
+}

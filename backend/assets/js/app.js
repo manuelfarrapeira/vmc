@@ -1350,10 +1350,10 @@ class VMCApp {
                 const nombreEscaped = this.escapeHtml(cliente.nombre).replace(/'/g, "\\'");
                 return `
                 <tr>
-                    <td style="white-space: nowrap !important;">
+                    <td style="white-space: nowrap !important; cursor: pointer;" onclick="showIncidencias(${cliente.id}, '${nombreEscaped}')">
                         <span class="fw-semibold" style="white-space: nowrap !important; display: inline !important;">${this.escapeHtml(cliente.nombre)}</span>
                     </td>
-                    <td style="white-space: nowrap !important;">
+                    <td style="white-space: nowrap !important; cursor: pointer;" onclick="showIncidencias(${cliente.id}, '${nombreEscaped}')">
                         <span style="white-space: nowrap !important; display: inline !important;">${this.escapeHtml(cliente.razon_social || '')}</span>
                     </td>
                     <td>
@@ -1394,11 +1394,6 @@ class VMCApp {
                     </td>
                     <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-primary btn-action" 
-                                    onclick="showIncidencias(${cliente.id}, '${nombreEscaped}')"
-                                    title="Ver incidencias">
-                                <i class="bi bi-clipboard-check"></i>
-                            </button>
                             <button type="button" class="btn btn-outline-secondary btn-action"
                                     onclick="editCliente(${cliente.id})"
                                     title="Editar cliente">
