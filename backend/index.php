@@ -430,19 +430,25 @@
                                                         <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-tag me-1"></i>Título</span>
                                                     </th>
                                                     <th class="fw-semibold" width="25%" style="white-space: nowrap;">Incidencia</th>
-                                                    <th class="fw-semibold" width="25%" style="white-space: nowrap;">Respuesta</th>
-                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">
-                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-clock me-1"></i>Horas</span>
+                                                    <th class="fw-semibold" width="20%" style="white-space: nowrap;">Respuesta</th>
+                                                    <th class="fw-semibold text-center" width="6%" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-clock-history me-1"></i>H.Inicio</span>
                                                     </th>
-                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">Realizado</th>
-                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">Cobrado</th>
-                                                    <th class="fw-semibold text-center" width="8%" style="white-space: nowrap;">Documento</th>
-                                                    <th class="fw-semibold text-center" width="8%" style="white-space: nowrap;">Acciones</th>
+                                                    <th class="fw-semibold text-center" width="6%" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-clock-fill me-1"></i>H.Fin</span>
+                                                    </th>
+                                                    <th class="fw-semibold text-center" width="6%" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-clock me-1"></i>Total</span>
+                                                    </th>
+                                                    <th class="fw-semibold text-center" width="6%" style="white-space: nowrap;">Realizado</th>
+                                                    <th class="fw-semibold text-center" width="6%" style="white-space: nowrap;">Cobrado</th>
+                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">Documento</th>
+                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="incidencias-table">
                                                 <tr>
-                                                    <td colspan="9" class="text-center py-4">
+                                                    <td colspan="11" class="text-center py-4">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>

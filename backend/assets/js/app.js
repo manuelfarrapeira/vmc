@@ -1689,6 +1689,31 @@ class VMCApp {
             return;
         }
 
+        // Validar que la hora de fin sea mayor que la hora de inicio
+        const horaInicioInput = document.getElementById('incidencia-hora-inicio');
+        const horaFinInput = document.getElementById('incidencia-hora-fin');
+        const horaInicio = horaInicioInput.value;
+        const horaFin = horaFinInput.value;
+
+        // Limpiar errores previos
+        horaFinInput.classList.remove('is-invalid');
+        const existingFeedback = horaFinInput.parentElement.querySelector('.invalid-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+
+        if (horaInicio && horaFin) {
+            if (horaFin <= horaInicio) {
+                horaFinInput.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = 'La hora de fin debe ser posterior a la hora de inicio';
+                horaFinInput.parentElement.appendChild(feedback);
+                horaFinInput.focus();
+                return;
+            }
+        }
+
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
 
@@ -1917,7 +1942,7 @@ class VMCApp {
         if (!data.data || data.data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center py-4">
+                    <td colspan="11" class="text-center py-4">
                         <i class="bi bi-clipboard-x text-muted" style="font-size: 3rem;"></i>
                         <p class="text-muted mb-0 mt-2">No se encontraron incidencias</p>
                         <button class="btn btn-outline-primary btn-sm mt-2" onclick="clearIncidenciasFilters()">
@@ -1944,6 +1969,12 @@ class VMCApp {
                         <div style="max-height: 150px; overflow-y: auto; word-wrap: break-word; padding-right: 10px;">
                             ${incidencia.respuesta ? this.escapeHtml(incidencia.respuesta) : '<em class="text-muted">Sin respuesta</em>'}
                         </div>
+                    </td>
+                    <td class="text-center" style="vertical-align: top;">
+                        ${incidencia.hora_inicio ? `<small class="text-muted">${incidencia.hora_inicio}</small>` : '<span class="text-muted">-</span>'}
+                    </td>
+                    <td class="text-center" style="vertical-align: top;">
+                        ${incidencia.hora_fin ? `<small class="text-muted">${incidencia.hora_fin}</small>` : '<span class="text-muted">-</span>'}
                     </td>
                     <td class="text-center" style="vertical-align: top;">
                         ${incidencia.total_horas ? `<span class="badge bg-info">${incidencia.total_horas}</span>` : '<span class="text-muted">-</span>'}
@@ -2008,7 +2039,7 @@ class VMCApp {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center py-4 text-danger">
+                    <td colspan="11" class="text-center py-4 text-danger">
                         <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
                         <p class="mb-0 mt-2">Error al cargar incidencias</p>
                         <small class="text-muted">${error}</small>
@@ -2191,6 +2222,29 @@ class VMCApp {
         // Setup form submission
         form.onsubmit = (e) => this.handleIncidenciaSubmit(e);
 
+        // Setup listeners para limpiar error de validación de horas
+        const horaInicioInput = document.getElementById('incidencia-hora-inicio');
+        const horaFinInput = document.getElementById('incidencia-hora-fin');
+
+        const clearHoraError = () => {
+            if (horaFinInput) {
+                horaFinInput.classList.remove('is-invalid');
+                const existingFeedback = horaFinInput.parentElement.querySelector('.invalid-feedback');
+                if (existingFeedback) {
+                    existingFeedback.remove();
+                }
+            }
+        };
+
+        if (horaInicioInput) {
+            horaInicioInput.removeEventListener('change', clearHoraError);
+            horaInicioInput.addEventListener('change', clearHoraError);
+        }
+        if (horaFinInput) {
+            horaFinInput.removeEventListener('change', clearHoraError);
+            horaFinInput.addEventListener('change', clearHoraError);
+        }
+
         modal.show();
     }
 
@@ -2205,6 +2259,31 @@ class VMCApp {
         if (!form.checkValidity()) {
             form.classList.add('was-validated');
             return;
+        }
+
+        // Validar que la hora de fin sea mayor que la hora de inicio
+        const horaInicioInput = document.getElementById('incidencia-hora-inicio');
+        const horaFinInput = document.getElementById('incidencia-hora-fin');
+        const horaInicio = horaInicioInput.value;
+        const horaFin = horaFinInput.value;
+
+        // Limpiar errores previos
+        horaFinInput.classList.remove('is-invalid');
+        const existingFeedback = horaFinInput.parentElement.querySelector('.invalid-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+
+        if (horaInicio && horaFin) {
+            if (horaFin <= horaInicio) {
+                horaFinInput.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = 'La hora de fin debe ser posterior a la hora de inicio';
+                horaFinInput.parentElement.appendChild(feedback);
+                horaFinInput.focus();
+                return;
+            }
         }
 
         const submitBtn = form.querySelector('button[type="submit"]');
@@ -2979,6 +3058,29 @@ class VMCApp {
         // Setup form submission
         form.onsubmit = (e) => this.handleIncidenciaClientesSubmit(e);
 
+        // Setup listeners para limpiar error de validación de horas
+        const horaInicioInput = document.getElementById('incidencia-clientes-hora-inicio');
+        const horaFinInput = document.getElementById('incidencia-clientes-hora-fin');
+
+        const clearHoraError = () => {
+            if (horaFinInput) {
+                horaFinInput.classList.remove('is-invalid');
+                const existingFeedback = horaFinInput.parentElement.querySelector('.invalid-feedback');
+                if (existingFeedback) {
+                    existingFeedback.remove();
+                }
+            }
+        };
+
+        if (horaInicioInput) {
+            horaInicioInput.removeEventListener('change', clearHoraError);
+            horaInicioInput.addEventListener('change', clearHoraError);
+        }
+        if (horaFinInput) {
+            horaFinInput.removeEventListener('change', clearHoraError);
+            horaFinInput.addEventListener('change', clearHoraError);
+        }
+
         modal.show();
     }
 
@@ -3123,6 +3225,33 @@ class VMCApp {
 
         // Remove invalid class if valid
         document.getElementById('incidencia-clientes-input').classList.remove('is-invalid');
+
+        // Validar que la hora de fin sea mayor que la hora de inicio
+        const horaInicioInput = document.getElementById('incidencia-clientes-hora-inicio');
+        const horaFinInput = document.getElementById('incidencia-clientes-hora-fin');
+        const horaInicio = horaInicioInput ? horaInicioInput.value : '';
+        const horaFin = horaFinInput ? horaFinInput.value : '';
+
+        // Limpiar errores previos
+        if (horaFinInput) {
+            horaFinInput.classList.remove('is-invalid');
+            const existingFeedback = horaFinInput.parentElement.querySelector('.invalid-feedback');
+            if (existingFeedback) {
+                existingFeedback.remove();
+            }
+
+            if (horaInicio && horaFin) {
+                if (horaFin <= horaInicio) {
+                    horaFinInput.classList.add('is-invalid');
+                    const feedback = document.createElement('div');
+                    feedback.className = 'invalid-feedback';
+                    feedback.textContent = 'La hora de fin debe ser posterior a la hora de inicio';
+                    horaFinInput.parentElement.appendChild(feedback);
+                    horaFinInput.focus();
+                    return;
+                }
+            }
+        }
 
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
