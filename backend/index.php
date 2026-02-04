@@ -369,10 +369,23 @@
                             <!-- Filters -->
                             <div class="card mb-4">
                                 <div class="card-body">
-                                    <div class="row g-3">
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">
+                                                <i class="bi bi-search me-1"></i>Buscar por título
+                                            </label>
+                                            <div class="position-relative">
+                                                <input type="text" class="form-control pe-5" id="filter-titulo" >
+                                                <div class="position-absolute top-50 end-0 translate-middle-y me-2" id="search-indicator" style="display: none;">
+                                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                        <span class="visually-hidden">Buscando...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-md-2">
                                             <label class="form-label fw-semibold">Realizado</label>
-                                            <select class="form-select" id="filter-realizado">
+                                            <select class="form-select" id="filter-realizado" onchange="updateIncidenciasFilters()">
                                                 <option value="">Todos</option>
                                                 <option value="1">Sí</option>
                                                 <option value="0">No</option>
@@ -380,7 +393,7 @@
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label fw-semibold">Cobrado</label>
-                                            <select class="form-select" id="filter-cobrado">
+                                            <select class="form-select" id="filter-cobrado" onchange="updateIncidenciasFilters()">
                                                 <option value="">Todos</option>
                                                 <option value="1">Sí</option>
                                                 <option value="0">No</option>
@@ -388,15 +401,14 @@
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label fw-semibold">Por página</label>
-                                            <select class="form-select" id="incidencias-page-size">
+                                            <select class="form-select" id="incidencias-page-size" onchange="updateIncidenciasFilters()">
                                                 <option value="20">20</option>
                                                 <option value="30">30</option>
                                                 <option value="50">50</option>
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label fw-semibold">&nbsp;</label>
-                                            <button class="btn btn-outline-secondary d-block w-100" onclick="clearIncidenciasFilters()">
+                                            <button class="btn btn-outline-secondary w-100" onclick="clearIncidenciasFilters()">
                                                 <i class="bi bi-arrow-clockwise me-1"></i>Limpiar
                                             </button>
                                         </div>
@@ -411,20 +423,26 @@
                                         <table class="table table-hover align-middle">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th class="fw-semibold" width="10%" style="white-space: nowrap;">
+                                                    <th class="fw-semibold" width="8%" style="white-space: nowrap;">
                                                         <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-calendar me-1"></i>Fecha</span>
                                                     </th>
-                                                    <th class="fw-semibold" width="30%" style="white-space: nowrap;">Incidencia</th>
-                                                    <th class="fw-semibold" width="30%" style="white-space: nowrap;">Respuesta</th>
-                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Realizado</th>
-                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Cobrado</th>
-                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Documento</th>
-                                                    <th class="fw-semibold text-center" width="10%" style="white-space: nowrap;">Acciones</th>
+                                                    <th class="fw-semibold" width="15%" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-tag me-1"></i>Título</span>
+                                                    </th>
+                                                    <th class="fw-semibold" width="25%" style="white-space: nowrap;">Incidencia</th>
+                                                    <th class="fw-semibold" width="25%" style="white-space: nowrap;">Respuesta</th>
+                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">
+                                                        <span style="display: inline-block; white-space: nowrap;"><i class="bi bi-clock me-1"></i>Horas</span>
+                                                    </th>
+                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">Realizado</th>
+                                                    <th class="fw-semibold text-center" width="7%" style="white-space: nowrap;">Cobrado</th>
+                                                    <th class="fw-semibold text-center" width="8%" style="white-space: nowrap;">Documento</th>
+                                                    <th class="fw-semibold text-center" width="8%" style="white-space: nowrap;">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="incidencias-table">
                                                 <tr>
-                                                    <td colspan="7" class="text-center py-4">
+                                                    <td colspan="9" class="text-center py-4">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>

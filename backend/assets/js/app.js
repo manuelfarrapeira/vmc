@@ -12,6 +12,7 @@ class VMCApp {
         this.currentClienteId = null;
         this.currentCliente = null;
         this.currentIncidencias = []; // Almacenar incidencias cargadas
+        this.currentClientes = []; // Almacenar clientes de la página actual
         this.allClientes = []; // Almacenar todos los clientes para búsqueda
         this.clientesImportar = null; // Almacenar clientes a importar desde CSV
 
@@ -30,6 +31,7 @@ class VMCApp {
                 estadoIncidencias: ''
             },
             incidencias: {
+                titulo: '',
                 realizado: '',
                 cobrado: ''
             }
@@ -100,6 +102,21 @@ class VMCApp {
                 }, 300);
             });
         }
+
+        // Search debounce for incidencias titulo - setup after a short delay
+        setTimeout(() => {
+            const tituloFilter = document.getElementById('filter-titulo');
+            if (tituloFilter) {
+                tituloFilter.addEventListener('input', (e) => {
+                    clearTimeout(this.timeouts.tituloFilter);
+                    this.timeouts.tituloFilter = setTimeout(() => {
+                        this.filters.incidencias.titulo = e.target.value;
+                        this.pagination.incidencias.page = 1;
+                        this.loadIncidencias();
+                    }, 300);
+                });
+            }
+        }, 500);
 
         // Filter by estado de incidencias
         const filterEstadoIncidencias = document.getElementById('filter-estado-incidencias');
@@ -340,6 +357,19 @@ class VMCApp {
                                         <div class="invalid-feedback">La fecha es obligatoria (formato DD/MM/YYYY).</div>
                                     </div>
                                     <div class="col-md-6">
+                                        <label for="incidencia-titulo" class="form-label fw-semibold">Título</label>
+                                        <input type="text" class="form-control" id="incidencia-titulo" name="titulo" maxlength="200">
+                                        <div class="form-text">Opcional, máx. 200 caracteres</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="incidencia-hora-inicio" class="form-label fw-semibold">Hora Inicio</label>
+                                        <input type="time" class="form-control" id="incidencia-hora-inicio" name="hora_inicio">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="incidencia-hora-fin" class="form-label fw-semibold">Hora Fin</label>
+                                        <input type="time" class="form-control" id="incidencia-hora-fin" name="hora_fin">
+                                    </div>
+                                    <div class="col-md-4">
                                         <label for="incidencia-realizado" class="form-label fw-semibold">Realizado</label>
                                         <select class="form-select" id="incidencia-realizado" name="realizado">
                                             <option value="0">No</option>
@@ -455,6 +485,19 @@ class VMCApp {
                                         <div class="invalid-feedback">La fecha es obligatoria (formato DD/MM/YYYY).</div>
                                     </div>
                                     <div class="col-md-6">
+                                        <label for="incidencia-clientes-titulo" class="form-label fw-semibold">Título</label>
+                                        <input type="text" class="form-control" id="incidencia-clientes-titulo" name="titulo" maxlength="200">
+                                        <div class="form-text">Opcional, máx. 200 caracteres</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="incidencia-clientes-hora-inicio" class="form-label fw-semibold">Hora Inicio</label>
+                                        <input type="time" class="form-control" id="incidencia-clientes-hora-inicio" name="hora_inicio">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="incidencia-clientes-hora-fin" class="form-label fw-semibold">Hora Fin</label>
+                                        <input type="time" class="form-control" id="incidencia-clientes-hora-fin" name="hora_fin">
+                                    </div>
+                                    <div class="col-md-4">
                                         <label for="incidencia-clientes-realizado" class="form-label fw-semibold">Realizado</label>
                                         <select class="form-select" id="incidencia-clientes-realizado" name="realizado">
                                             <option value="0">No</option>
@@ -685,7 +728,7 @@ class VMCApp {
 
         // Reset pagination and filters
         this.pagination.incidencias = { page: 1, limit: 20, total: 0, pages: 0 };
-        this.filters.incidencias = { realizado: '', cobrado: '' };
+        this.filters.incidencias = { titulo: '', realizado: '', cobrado: '' };
 
         this.showSection('incidencias');
     }
@@ -1287,6 +1330,9 @@ class VMCApp {
         this.pagination.clientes.total = data.total || 0;
         this.pagination.clientes.pages = data.pages || 0;
 
+        // Almacenar los clientes actuales
+        this.currentClientes = data.data || [];
+
         if (!data.data || data.data.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -1300,8 +1346,10 @@ class VMCApp {
                 </tr>
             `;
         } else {
-            const rows = data.data.map(cliente => `
-                <tr style="cursor: pointer;" onclick="showIncidencias(${cliente.id}, '${this.escapeHtml(cliente.nombre)}')">
+            const rows = data.data.map(cliente => {
+                const nombreEscaped = this.escapeHtml(cliente.nombre).replace(/'/g, "\\'");
+                return `
+                <tr>
                     <td style="white-space: nowrap !important;">
                         <span class="fw-semibold" style="white-space: nowrap !important; display: inline !important;">${this.escapeHtml(cliente.nombre)}</span>
                     </td>
@@ -1312,17 +1360,17 @@ class VMCApp {
                         <code class="text-muted">${this.escapeHtml(cliente.dni || '')}</code>
                     </td>
                     <td>
-                        ${cliente.tlf ? `<a href="tel:${cliente.tlf}" class="text-decoration-none" onclick="event.stopPropagation();">${cliente.tlf}</a>` : ''}
+                        ${cliente.tlf ? `<a href="tel:${cliente.tlf}" class="text-decoration-none">${cliente.tlf}</a>` : ''}
                     </td>
                     <td>
-                        ${cliente.email ? `<a href="mailto:${cliente.email}" class="text-decoration-none" onclick="event.stopPropagation();">${this.escapeHtml(cliente.email)}</a>` : ''}
+                        ${cliente.email ? `<a href="mailto:${cliente.email}" class="text-decoration-none">${this.escapeHtml(cliente.email)}</a>` : ''}
                     </td>
                     <td>
                         <span class="text-truncate d-block" style="max-width: 200px;" title="${this.escapeHtml(cliente.observaciones || '')}">
                             ${this.escapeHtml(cliente.observaciones || '')}
                         </span>
                     </td>
-                    <td class="text-center" onclick="event.stopPropagation();">
+                    <td class="text-center">
                         ${cliente.documentacion ? `
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-primary btn-action"
@@ -1344,27 +1392,28 @@ class VMCApp {
                         </button>
                         `}
                     </td>
-                    <td class="text-center" onclick="event.stopPropagation();">
+                    <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-primary btn-action" 
-                                    onclick="showIncidencias(${cliente.id}, '${this.escapeHtml(cliente.nombre)}')"
+                                    onclick="showIncidencias(${cliente.id}, '${nombreEscaped}')"
                                     title="Ver incidencias">
                                 <i class="bi bi-clipboard-check"></i>
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-action"
-                                    onclick="openClienteModal(${JSON.stringify(cliente).replace(/"/g, '&quot;')})"
+                                    onclick="editCliente(${cliente.id})"
                                     title="Editar cliente">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button type="button" class="btn btn-outline-danger btn-action"
-                                    onclick="confirmDeleteCliente(${cliente.id}, '${this.escapeHtml(cliente.nombre)}')"
+                                    onclick="confirmDeleteCliente(${cliente.id}, '${nombreEscaped}')"
                                     title="Eliminar cliente">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
 
             tbody.innerHTML = rows;
         }
@@ -1817,6 +1866,12 @@ class VMCApp {
         }
 
         try {
+            // Show search indicator if searching by titulo
+            const searchIndicator = document.getElementById('search-indicator');
+            if (searchIndicator && this.filters.incidencias.titulo) {
+                searchIndicator.style.display = 'block';
+            }
+
             const params = new URLSearchParams({
                 page: this.pagination.incidencias.page,
                 limit: this.pagination.incidencias.limit,
@@ -1833,10 +1888,21 @@ class VMCApp {
 
             this.renderIncidencias(response);
 
+            // Hide search indicator
+            if (searchIndicator) {
+                searchIndicator.style.display = 'none';
+            }
+
         } catch (error) {
             console.error('Error loading incidencias:', error);
             this.showToast('Error al cargar incidencias: ' + error, 'error');
             this.renderIncidenciasError(error);
+
+            // Hide search indicator on error
+            const searchIndicator = document.getElementById('search-indicator');
+            if (searchIndicator) {
+                searchIndicator.style.display = 'none';
+            }
         }
     }
 
@@ -1856,7 +1922,7 @@ class VMCApp {
         if (!data.data || data.data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="9" class="text-center py-4">
                         <i class="bi bi-clipboard-x text-muted" style="font-size: 3rem;"></i>
                         <p class="text-muted mb-0 mt-2">No se encontraron incidencias</p>
                         <button class="btn btn-outline-primary btn-sm mt-2" onclick="clearIncidenciasFilters()">
@@ -1872,6 +1938,9 @@ class VMCApp {
                         <small class="text-muted">${this.escapeHtml(incidencia.fecha || '')}</small>
                     </td>
                     <td style="vertical-align: top;">
+                        ${incidencia.titulo ? `<strong>${this.escapeHtml(incidencia.titulo)}</strong>` : '<em class="text-muted">Sin título</em>'}
+                    </td>
+                    <td style="vertical-align: top;">
                         <div style="max-height: 150px; overflow-y: auto; word-wrap: break-word; padding-right: 10px;">
                             ${this.escapeHtml(incidencia.incidencia || '')}
                         </div>
@@ -1880,6 +1949,9 @@ class VMCApp {
                         <div style="max-height: 150px; overflow-y: auto; word-wrap: break-word; padding-right: 10px;">
                             ${incidencia.respuesta ? this.escapeHtml(incidencia.respuesta) : '<em class="text-muted">Sin respuesta</em>'}
                         </div>
+                    </td>
+                    <td class="text-center" style="vertical-align: top;">
+                        ${incidencia.total_horas ? `<span class="badge bg-info">${incidencia.total_horas}</span>` : '<span class="text-muted">-</span>'}
                     </td>
                     <td class="text-center" style="vertical-align: top;">
                         ${this.getStatusBadge(incidencia.realizado)}
@@ -1941,7 +2013,7 @@ class VMCApp {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4 text-danger">
+                    <td colspan="9" class="text-center py-4 text-danger">
                         <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
                         <p class="mb-0 mt-2">Error al cargar incidencias</p>
                         <small class="text-muted">${error}</small>
@@ -2032,11 +2104,12 @@ class VMCApp {
      * Update incidencias filters
      */
     updateIncidenciasFilters() {
+        const titulo = document.getElementById('filter-titulo')?.value || '';
         const realizado = document.getElementById('filter-realizado')?.value || '';
         const cobrado = document.getElementById('filter-cobrado')?.value || '';
         const pageSize = parseInt(document.getElementById('incidencias-page-size')?.value) || 20;
 
-        this.filters.incidencias = { realizado, cobrado };
+        this.filters.incidencias = { titulo, realizado, cobrado };
         this.pagination.incidencias.limit = pageSize;
         this.pagination.incidencias.page = 1;
 
@@ -2047,11 +2120,12 @@ class VMCApp {
      * Clear incidencias filters
      */
     clearIncidenciasFilters() {
+        document.getElementById('filter-titulo').value = '';
         document.getElementById('filter-realizado').value = '';
         document.getElementById('filter-cobrado').value = '';
         document.getElementById('incidencias-page-size').value = '20';
 
-        this.filters.incidencias = { realizado: '', cobrado: '' };
+        this.filters.incidencias = { titulo: '', realizado: '', cobrado: '' };
         this.pagination.incidencias = { page: 1, limit: 20, total: 0, pages: 0 };
 
         this.loadIncidencias();
@@ -2092,10 +2166,13 @@ class VMCApp {
             document.getElementById('incidencia-id').value = incidencia.id;
             document.getElementById('incidencia-cliente-id').value = incidencia.idcliente || this.currentClienteId;
             document.getElementById('incidencia-fecha').value = incidencia.fecha || this.getCurrentDate();
+            document.getElementById('incidencia-titulo').value = incidencia.titulo || '';
             document.getElementById('incidencia-descripcion').value = incidencia.incidencia || '';
             document.getElementById('incidencia-respuesta').value = incidencia.respuesta || '';
             document.getElementById('incidencia-realizado').value = incidencia.realizado || '0';
             document.getElementById('incidencia-cobrado').value = incidencia.cobrado || '0';
+            document.getElementById('incidencia-hora-inicio').value = incidencia.hora_inicio || '';
+            document.getElementById('incidencia-hora-fin').value = incidencia.hora_fin || '';
 
             // Show documento actual if exists
             if (incidencia.documentacion) {
@@ -2109,8 +2186,11 @@ class VMCApp {
             document.getElementById('incidencia-id').value = '';
             document.getElementById('incidencia-cliente-id').value = this.currentClienteId;
             document.getElementById('incidencia-fecha').value = this.getCurrentDate();
+            document.getElementById('incidencia-titulo').value = '';
             document.getElementById('incidencia-realizado').value = '0';
             document.getElementById('incidencia-cobrado').value = '0';
+            document.getElementById('incidencia-hora-inicio').value = '';
+            document.getElementById('incidencia-hora-fin').value = '';
         }
 
         // Setup form submission
@@ -3204,11 +3284,15 @@ class VMCApp {
      */
     updateIncidenciasFilters() {
         // Get filter values
+        const tituloFilter = document.getElementById('filter-titulo');
         const realizadoFilter = document.getElementById('filter-realizado');
         const cobradoFilter = document.getElementById('filter-cobrado');
         const pageSizeElement = document.getElementById('incidencias-page-size');
 
         // Update filters
+        if (tituloFilter) {
+            this.filters.incidencias.titulo = tituloFilter.value;
+        }
         if (realizadoFilter) {
             this.filters.incidencias.realizado = realizadoFilter.value;
         }
@@ -3229,7 +3313,7 @@ class VMCApp {
      */
     clearIncidenciasFilters() {
         // Reset filter selects
-        ['filter-realizado', 'filter-cobrado'].forEach(id => {
+        ['filter-titulo', 'filter-realizado', 'filter-cobrado'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
                 element.value = '';
@@ -3244,6 +3328,7 @@ class VMCApp {
 
         // Reset filters
         this.filters.incidencias = {
+            titulo: '',
             realizado: '',
             cobrado: ''
         };
@@ -3360,6 +3445,17 @@ function editIncidencia(incidenciaId) {
     }
 }
 
+function editCliente(clienteId) {
+    if (vmcApp && vmcApp.currentClientes) {
+        const cliente = vmcApp.currentClientes.find(c => c.id == clienteId);
+        if (cliente) {
+            vmcApp.openClienteModal(cliente);
+        } else {
+            console.error('Cliente no encontrado:', clienteId);
+        }
+    }
+}
+
 function showIncidencias(clienteId, clienteNombre) {
     vmcApp?.showIncidencias(clienteId, clienteNombre);
 }
@@ -3370,6 +3466,14 @@ function clearClientesFilters() {
 
 function clearIncidenciasFilters() {
     vmcApp?.clearIncidenciasFilters();
+}
+
+function updateIncidenciasFilters() {
+    vmcApp?.updateIncidenciasFilters();
+}
+
+function applyIncidenciasFilters() {
+    vmcApp?.updateIncidenciasFilters();
 }
 
 // Handle estado incidencias filter change

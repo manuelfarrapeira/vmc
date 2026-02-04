@@ -36,6 +36,9 @@ switch ($method) {
         if (isset($_GET['cobrado']) && $_GET['cobrado'] !== '') {
             $filters['cobrado'] = (int)$_GET['cobrado'];
         }
+        if (isset($_GET['titulo']) && $_GET['titulo'] !== '') {
+            $filters['titulo'] = $_GET['titulo'];
+        }
 
         // Validar limit
         $allowedLimits = [20, 30, 50];
@@ -63,12 +66,15 @@ switch ($method) {
             if (!empty($data->idcliente) && !empty($data->incidencia)) {
                 $incidencia->idcliente = $data->idcliente;
                 $incidencia->fecha = $data->fecha ?? date('d/m/Y');
+                $incidencia->titulo = $data->titulo ?? '';
                 $incidencia->incidencia = $data->incidencia;
                 $incidencia->realizado = $data->realizado ?? 0;
                 $incidencia->respuesta = $data->respuesta ?? '';
                 $incidencia->cobrado = $data->cobrado ?? 0;
                 $incidencia->documentacion = $data->documentacion ?? '';
                 $incidencia->qr = $data->qr ?? '';
+                $incidencia->hora_inicio = $data->hora_inicio ?? '';
+                $incidencia->hora_fin = $data->hora_fin ?? '';
 
                 $createdId = $incidencia->create();
                 if ($createdId) {
@@ -103,12 +109,15 @@ switch ($method) {
             $incidencia->id = $data->id;
             $incidencia->idcliente = $data->idcliente;
             $incidencia->fecha = $data->fecha ?? date('d/m/Y');
+            $incidencia->titulo = $data->titulo ?? '';
             $incidencia->incidencia = $data->incidencia;
             $incidencia->realizado = $data->realizado ?? 0;
             $incidencia->respuesta = $data->respuesta ?? '';
             $incidencia->cobrado = $data->cobrado ?? 0;
             $incidencia->documentacion = $data->documentacion ?? '';
             $incidencia->qr = $data->qr ?? '';
+            $incidencia->hora_inicio = $data->hora_inicio ?? '';
+            $incidencia->hora_fin = $data->hora_fin ?? '';
 
             if ($incidencia->update()) {
                 http_response_code(200);
